@@ -7,11 +7,6 @@ using System.Text;
 
 namespace CASCExplorer
 {
-    class FileExistsException : Exception
-    {
-        public FileExistsException(string message) : base(message) { }
-    }
-
     class BLTEChunk
     {
         public int CompSize;
