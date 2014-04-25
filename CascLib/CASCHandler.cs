@@ -418,40 +418,41 @@ namespace CASCExplorer
 
         public List<RootEntry> GetRootInfo(ulong hash)
         {
-            if (RootData.ContainsKey(hash))
-                return RootData[hash];
-            return null;
+            List<RootEntry> result;
+            RootData.TryGetValue(hash, out result);
+            return result;
         }
 
         private EncodingEntry GetEncodingInfo(byte[] md5)
         {
-            if (EncodingData.ContainsKey(md5))
-                return EncodingData[md5];
-            return null;
+            EncodingEntry result;
+            EncodingData.TryGetValue(md5, out result);
+            return result;
         }
 
         private IndexEntry GetLocalIndexInfo(byte[] key)
         {
             byte[] temp = key.Copy(9);
-            if (LocalIndexData.ContainsKey(temp))
-                return LocalIndexData[temp];
 
-            Logger.WriteLine("CASCHandler: missing index: {0}", key.ToHexString());
+            IndexEntry result;
+            if (!LocalIndexData.TryGetValue(temp, out result))
+                Logger.WriteLine("CASCHandler: missing index: {0}", key.ToHexString());
 
-            return null;
+            return result;
         }
 
         private FileStream GetDataStream(int index)
         {
-            if (DataStreams.ContainsKey(index))
-                return DataStreams[index];
+            FileStream stream;
+            if (DataStreams.TryGetValue(index, out stream))
+                return stream;
 
             string dataFile = Path.Combine(config.BasePath, String.Format("Data\\data\\data.{0:D3}", index));
 
-            var fs = new FileStream(dataFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            DataStreams[index] = fs;
+            stream = new FileStream(dataFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            DataStreams[index] = stream;
 
-            return fs;
+            return stream;
         }
 
         public static CASCHandler OpenLocalStorage(string basePath, BackgroundWorker worker)
