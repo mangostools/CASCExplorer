@@ -214,6 +214,7 @@ namespace CASCExplorer
                         case ".xml":
                         case ".htm":
                         case ".html":
+                        case ".lst":
                             {
                                 PreviewText(file.FullName);
                                 break;
@@ -249,8 +250,11 @@ namespace CASCExplorer
             var stream = cascHandler.OpenFile(fullName, LocaleFlags.All);
             var blp = new BlpFile(stream);
             var bitmap = blp.GetBitmap(0);
-            var form = new ImagePreviewForm(bitmap);
-            form.Show();
+            var form = new ImagePreviewForm(bitmap)
+            {
+                StartPosition = FormStartPosition.CenterParent 
+            };
+            form.Show(this);
         }
 
         private void listView1_KeyDown(object sender, KeyEventArgs e)
