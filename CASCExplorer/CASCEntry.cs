@@ -65,7 +65,7 @@ namespace CASCExplorer
 
         public string FullName
         {
-            get { return CASCHandler.FileNames[hash]; }
+            get { return FileNames[hash]; }
         }
 
         public ulong Hash
@@ -80,5 +80,7 @@ namespace CASCExplorer
             else
                 return this is CASCFile ? 1 : -1;
         }
+
+        public static readonly Dictionary<ulong, string> FileNames = new Dictionary<ulong, string>();
     }
 }

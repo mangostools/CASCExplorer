@@ -81,7 +81,7 @@ namespace CASCExplorer
                 : CASCHandler.OpenLocalStorage(Settings.Default.WowPath, worker);
 
             root = LoadListFile(cascHandler, Path.Combine(Application.StartupPath, "listfile.txt"), worker);
-            e.Result = CASCHandler.FileNames.Count;
+            e.Result = CASCFile.FileNames.Count;
         }
 
         private void treeView1_BeforeSelect(object sender, TreeViewCancelEventArgs e)
@@ -356,7 +356,7 @@ namespace CASCExplorer
                             if (isFile)
                             {
                                 entry = new CASCFile(hash);
-                                CASCHandler.FileNames[hash] = file;
+                                CASCFile.FileNames[hash] = file;
                             }
                             else
                             {
@@ -376,7 +376,7 @@ namespace CASCExplorer
                         folder = entry as CASCFolder;
                     }
                 }
-                Logger.WriteLine("CASCHandler: loaded {0} file names", CASCHandler.FileNames.Count);
+                Logger.WriteLine("CASCHandler: loaded {0} file names", CASCFile.FileNames.Count);
             }
             return root;
         }

@@ -75,14 +75,11 @@ namespace CASCExplorer
         readonly Dictionary<byte[], EncodingEntry> EncodingData = new Dictionary<byte[], EncodingEntry>(comparer);
         readonly Dictionary<byte[], IndexEntry> LocalIndexData = new Dictionary<byte[], IndexEntry>(comparer);
 
-        public static readonly Dictionary<ulong, string> FileNames = new Dictionary<ulong, string>();
-
         public static readonly Jenkins96 Hasher = new Jenkins96();
 
         private readonly Dictionary<int, FileStream> DataStreams = new Dictionary<int, FileStream>();
 
         public int NumRootEntries { get { return RootData.Count; } }
-        public int NumFileNames { get { return FileNames.Count; } }
 
         private readonly CASCConfig config;
         private readonly CDNHandler cdn;
