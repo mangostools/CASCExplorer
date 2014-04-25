@@ -324,7 +324,7 @@ namespace CASCExplorer
 
             var root = new CASCFolder(rootHash);
 
-            CASCHandler.FolderNames[rootHash] = "root";
+            CASCFolder.FolderNames[rootHash] = "root";
 
             using (var sr = new StreamReader(path))
             {
@@ -361,7 +361,7 @@ namespace CASCExplorer
                             else
                             {
                                 entry = new CASCFolder(hash);
-                                CASCHandler.FolderNames[hash] = parts[i];
+                                CASCFolder.FolderNames[hash] = parts[i];
                             }
 
                             folder.SubEntries[hash] = entry;

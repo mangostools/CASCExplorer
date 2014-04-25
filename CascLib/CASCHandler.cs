@@ -76,7 +76,6 @@ namespace CASCExplorer
         readonly Dictionary<byte[], IndexEntry> LocalIndexData = new Dictionary<byte[], IndexEntry>(comparer);
 
         public static readonly Dictionary<ulong, string> FileNames = new Dictionary<ulong, string>();
-        public static readonly Dictionary<ulong, string> FolderNames = new Dictionary<ulong, string>();
 
         public static readonly Jenkins96 Hasher = new Jenkins96();
 

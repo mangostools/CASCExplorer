@@ -23,7 +23,7 @@ namespace CASCExplorer
 
         public string Name
         {
-            get { return CASCHandler.FolderNames[hash]; }
+            get { return FolderNames[hash]; }
         }
 
         public ulong Hash
@@ -45,6 +45,8 @@ namespace CASCExplorer
             else
                 return this is CASCFolder ? -1 : 1;
         }
+
+        public static readonly Dictionary<ulong, string> FolderNames = new Dictionary<ulong, string>();
     }
 
     public class CASCFile : ICASCEntry, IComparable<ICASCEntry>
