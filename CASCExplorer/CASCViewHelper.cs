@@ -657,8 +657,6 @@ namespace CASCExplorer
                 {
                     sw.WriteLine(dir);
                 }
-
-                Logger.WriteLine("WowRootHandler: loaded {0} valid file names", CASCFile.Files.Count);
             }
         }
 

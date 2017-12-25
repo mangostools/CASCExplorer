@@ -19,8 +19,9 @@ namespace CASCLib
         private ColumnMetaData[] columnMeta;
         private Value32[][] palletData;
         private Dictionary<uint, Value32>[] commonData;
+        private ReferenceEntry? refData;
 
-        public WDC1Row(WDC1Reader reader, BitReader data, uint id)
+        public WDC1Row(WDC1Reader reader, BitReader data, uint id, ReferenceEntry? refData)
         {
             m_reader = reader;
             m_data = data;
@@ -31,6 +32,7 @@ namespace CASCLib
             columnMeta = reader.ColumnMeta;
             palletData = reader.PalletData;
             commonData = reader.CommonData;
+            this.refData = refData;
 
             if (id != 0xFFFFFFFF)
                 Id = id;
@@ -51,7 +53,7 @@ namespace CASCLib
 
             if (fieldIndex >= m_reader.Meta.Length)
             {
-                value = 0;//refData.Id;
+                value = refData?.Id ?? 0;
                 return (T)value;
             }
 
@@ -230,12 +232,12 @@ namespace CASCLib
         private Dictionary<uint, WDC1Row> _Records = new Dictionary<uint, WDC1Row>();
 
         // normal records data
-        byte[] recordsData;
-        Dictionary<int, string> m_stringsTable;
+        private byte[] recordsData;
+        private Dictionary<int, string> m_stringsTable;
 
         // sparse records data
-        byte[] sparseData;
-        SparseEntry[] sparseEntries;
+        private byte[] sparseData;
+        private SparseEntry[] sparseEntries;
 
         public WDC1Reader(string dbcFile) : this(new FileStream(dbcFile, FileMode.Open)) { }
 
@@ -377,12 +379,7 @@ namespace CASCLib
                     bitReader.Position = 0;
                     bitReader.Offset = i * RecordSize;
 
-                    WDC1Row rec = new WDC1Row(this, bitReader, indexDataSize != 0 ? m_indexData[i] : 0xFFFFFFFF);
-
-                    //if (refData != null && i < refData.Entries.Length)
-                    //    rec.Read(bitReader, m_stringsTable, m_meta, m_columnMeta, m_palletData, m_commonData, refData.Entries[i], indexDataSize != 0 ? m_indexData[i] : 0xFFFFFFFF);
-                    //else
-                    //    rec.Read(bitReader, m_stringsTable, m_meta, m_columnMeta, m_palletData, m_commonData, default(ReferenceEntry), indexDataSize != 0 ? m_indexData[i] : 0xFFFFFFFF);
+                    WDC1Row rec = new WDC1Row(this, bitReader, indexDataSize != 0 ? m_indexData[i] : 0xFFFFFFFF, refData?.Entries[i]);
 
                     if (indexDataSize != 0)
                         _Records.Add(m_indexData[i], rec);
