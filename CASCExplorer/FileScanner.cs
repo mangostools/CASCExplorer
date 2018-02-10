@@ -33,6 +33,7 @@ namespace CASCExplorer
         private static readonly Dictionary<byte[], string> MagicNumbers = new Dictionary<byte[], string>()
         {
             { new byte[] { 0x42, 0x4c, 0x50, 0x32 }, ".blp" },
+            //{ new byte[] { 0x42, 0x4c, 0x50, 0x33 }, ".blp3" },
             { new byte[] { 0x4d, 0x44, 0x32, 0x30 }, ".m2" },
             { new byte[] { 0x4d, 0x44, 0x32, 0x31 }, ".m2" },
             { new byte[] { 0x53, 0x59, 0x48, 0x50 }, ".phys" },
