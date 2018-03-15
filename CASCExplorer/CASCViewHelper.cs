@@ -131,9 +131,9 @@ namespace CASCExplorer
                         using (Stream skeStream = _casc.OpenFile("DBFilesClient\\SoundKitEntry.db2"))
                         using (Stream sknStream = _casc.OpenFile("DBFilesClient\\SoundKitName.db2"))
                         {
-                            WDC1Reader sk = new WDC1Reader(skStream);
-                            WDC1Reader ske = new WDC1Reader(skeStream);
-                            WDC1Reader skn = new WDC1Reader(sknStream);
+                            WDC2Reader sk = new WDC2Reader(skStream);
+                            WDC2Reader ske = new WDC2Reader(skeStream);
+                            WDC2Reader skn = new WDC2Reader(sknStream);
 
                             Dictionary<uint, List<uint>> lookup = new Dictionary<uint, List<uint>>();
 
@@ -462,6 +462,7 @@ namespace CASCExplorer
                 var blp = new BlpFile(stream);
                 var bitmap = blp.GetBitmap(0);
                 var form = new ImagePreviewForm(bitmap);
+                form.Text += " - " + file.Name;
                 form.Show();
             }
         }
