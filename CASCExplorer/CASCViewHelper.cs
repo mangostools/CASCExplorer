@@ -42,6 +42,9 @@ namespace CASCExplorer
 
         public List<ICASCEntry> DisplayedEntries => _displayedEntries;
 
+        public bool AnalyzeSoundFiles { get; set; }
+        public bool AddFileDataIdToSoundFiles { get; set; }
+
         public void ExtractFiles(NoFlickerListView filesList)
         {
             if (_currentFolder == null)
@@ -96,7 +99,7 @@ namespace CASCExplorer
 
                 Dictionary<uint, List<string>> idToName = new Dictionary<uint, List<string>>();
 
-                if (_casc.Config.GameType == CASCGameType.WoW)
+                if (_casc.Config.GameType == CASCGameType.WoW && AnalyzeSoundFiles)
                 {
                     if (_casc.FileExists("DBFilesClient\\SoundEntries.db2"))
                     {
@@ -165,7 +168,11 @@ namespace CASCExplorer
                                     if (!idToName.ContainsKey(fid))
                                         idToName[fid] = new List<string>();
 
-                                    idToName[fid].Add("unknown\\sound\\" + name + (many ? "_" + (i + 1).ToString("D2") : "") + "_" + fid + (type == 28 ? ".mp3" : ".ogg"));
+                                    if (AddFileDataIdToSoundFiles)
+                                        idToName[fid].Add("unknown\\sound\\" + name + (many ? "_" + (i + 1).ToString("D2") : "") + "_" + fid + (type == 28 ? ".mp3" : ".ogg"));
+                                    else
+                                        idToName[fid].Add("unknown\\sound\\" + name + (many ? "_" + (i + 1).ToString("D2") : "") + (type == 28 ? ".mp3" : ".ogg"));
+
                                     i++;
                                 }
                             }
