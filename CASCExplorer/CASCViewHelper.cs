@@ -42,8 +42,8 @@ namespace CASCExplorer
 
         public List<ICASCEntry> DisplayedEntries => _displayedEntries;
 
-        public bool AnalyzeSoundFiles { get; set; }
-        public bool AddFileDataIdToSoundFiles { get; set; }
+        public bool AnalyzeSoundFiles { get; set; } = true;
+        public bool AddFileDataIdToSoundFiles { get; set; } = true;
 
         public void ExtractFiles(NoFlickerListView filesList)
         {
