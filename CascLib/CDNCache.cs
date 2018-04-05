@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography;
@@ -52,6 +53,8 @@ namespace CASCLib
 
         private readonly MD5 _md5 = MD5.Create();
 
+        private readonly HashSet<string> _validatedData = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         public CDNCache(string path)
         {
             _cachePath = path;
@@ -74,7 +77,7 @@ namespace CASCLib
             if (!fi.Exists)
                 _downloader.DownloadFile(url, file);
 
-            if (Validate)
+            if (Validate && !_validatedData.Contains(file))
             {
                 CacheMetaData meta = CacheMetaData.Load(file) ?? _downloader.GetMetaData(url, file);
 
@@ -89,7 +92,9 @@ namespace CASCLib
                     md5Ok = _md5.ComputeHash(fs).EqualsTo(meta.MD5);
                 }
 
-                if (!sizeOk || !md5Ok)
+                if (sizeOk && md5Ok)
+                    _validatedData.Add(file);
+                else
                     _downloader.DownloadFile(url, file);
             }
 
