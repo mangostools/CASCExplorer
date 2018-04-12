@@ -50,10 +50,10 @@ namespace CASCConsole
             //    }
             //}
 
-            if (args.Length != 4)
+            if (args.Length != 5)
             {
                 Console.WriteLine("Invalid arguments count!");
-                Console.WriteLine("Usage: CASCConsole <pattern> <destination> <localeFlags> <contentFlags>");
+                Console.WriteLine("Usage: CASCConsole <mode> <pattern|listfile> <destination> <localeFlags> <contentFlags>");
                 return;
             }
 
@@ -74,10 +74,11 @@ namespace CASCConsole
 
             CASCHandler cascHandler = CASCHandler.OpenStorage(config, bgLoader);
 
-            string pattern = args[0];
-            string dest = args[1];
-            LocaleFlags locale = (LocaleFlags)Enum.Parse(typeof(LocaleFlags), args[2]);
-            ContentFlags content = (ContentFlags)Enum.Parse(typeof(ContentFlags), args[3]);
+            string mode = args[0];
+            string pattern = args[1];
+            string dest = args[2];
+            LocaleFlags locale = (LocaleFlags)Enum.Parse(typeof(LocaleFlags), args[3]);
+            ContentFlags content = (ContentFlags)Enum.Parse(typeof(ContentFlags), args[4]);
 
             cascHandler.Root.LoadListFile(Path.Combine(Environment.CurrentDirectory, "listfile.txt"), bgLoader);
             CASCFolder root = cascHandler.Root.SetFlags(locale, content);
@@ -86,33 +87,47 @@ namespace CASCConsole
             Console.WriteLine("Loaded.");
 
             Console.WriteLine("Extract params:");
+            Console.WriteLine("    Mode: {0}", mode);
             Console.WriteLine("    Pattern: {0}", pattern);
             Console.WriteLine("    Destination: {0}", dest);
             Console.WriteLine("    LocaleFlags: {0}", locale);
             Console.WriteLine("    ContentFlags: {0}", content);
 
-            Wildcard wildcard = new Wildcard(pattern, true, RegexOptions.IgnoreCase);
-
-            foreach (var file in CASCFolder.GetFiles(root.Entries.Select(kv => kv.Value)))
+            if (mode == "pattern")
             {
-                if (wildcard.IsMatch(file.FullName))
-                {
-                    Console.Write("Extracting '{0}'...", file.FullName);
+                Wildcard wildcard = new Wildcard(pattern, true, RegexOptions.IgnoreCase);
 
-                    try
-                    {
-                        cascHandler.SaveFileTo(file.FullName, dest);
-                        Console.WriteLine(" Ok!");
-                    }
-                    catch (Exception exc)
-                    {
-                        Console.WriteLine(" Error!");
-                        Logger.WriteLine(exc.Message);
-                    }
+                foreach (var file in CASCFolder.GetFiles(root.Entries.Select(kv => kv.Value)))
+                {
+                    if (wildcard.IsMatch(file.FullName))
+                        ExtractFile(cascHandler, file.FullName, dest);
                 }
+            }
+            else if (mode == "listfile")
+            {
+                var names = File.ReadLines(pattern);
+
+                foreach (var file in names)
+                    ExtractFile(cascHandler, file, dest);
             }
 
             Console.WriteLine("Extracted.");
+        }
+
+        private static void ExtractFile(CASCHandler cascHandler, string file, string dest)
+        {
+            Console.Write("Extracting '{0}'...", file);
+
+            try
+            {
+                cascHandler.SaveFileTo(file, dest);
+                Console.WriteLine(" Ok!");
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(" Error!");
+                Logger.WriteLine(exc.Message);
+            }
         }
 
         private static void BgLoader_ProgressChanged(object sender, ProgressChangedEventArgs e)

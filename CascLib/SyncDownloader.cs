@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Net;
+using System.Net.Http;
 //using System.Net.Http;
 
 namespace CASCLib
@@ -61,6 +62,14 @@ namespace CASCLib
         {
             try
             {
+                //HttpClient client = new HttpClient();
+
+                //HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Head, url);
+
+                //HttpResponseMessage response = client.SendAsync(request).Result;
+
+                //var headers = response.Headers;
+
                 HttpWebRequest request = WebRequest.CreateHttp(url);
                 request.Method = "HEAD";
 
