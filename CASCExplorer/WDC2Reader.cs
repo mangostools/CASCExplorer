@@ -114,6 +114,7 @@ namespace CASCLib
                     else
                         return r.ReadValue64(columnMeta.Immediate.BitWidth).GetValue<T>();
                 case CompressionType.Immediate:
+                case CompressionType.Unk1:
                     return r.ReadValue64(columnMeta.Immediate.BitWidth).GetValue<T>();
                 case CompressionType.Common:
                     if (commonData.TryGetValue(Id, out Value32 val))
@@ -149,6 +150,7 @@ namespace CASCLib
 
                     return arr1;
                 case CompressionType.Immediate:
+                case CompressionType.Unk1:
                     T[] arr2 = new T[arraySize];
 
                     for (int i = 0; i < arr2.Length; i++)
