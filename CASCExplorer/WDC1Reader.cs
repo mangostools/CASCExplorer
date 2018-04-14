@@ -482,7 +482,7 @@ namespace CASCLib
         Common = 2,
         Pallet = 3,
         PalletArray = 4,
-        Unk1 = 5
+        SignedImmediate = 5
     }
 
     public struct ReferenceEntry
