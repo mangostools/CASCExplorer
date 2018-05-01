@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -7,21 +6,28 @@ using System.Text;
 
 namespace CASCLib
 {
-    public class WDC1Row
+    public interface IDB2Row
+    {
+        int Id { get; set; }
+        T GetField<T>(int fieldIndex, int arrayIndex = -1);
+        IDB2Row Clone();
+    }
+
+    public class WDC1Row : IDB2Row
     {
         private BitReader m_data;
         private WDC1Reader m_reader;
         private int Offset;
 
-        public uint Id { get; set; }
+        public int Id { get; set; }
 
         private FieldMetaData[] fieldMeta;
         private ColumnMetaData[] columnMeta;
         private Value32[][] palletData;
-        private Dictionary<uint, Value32>[] commonData;
+        private Dictionary<int, Value32>[] commonData;
         private ReferenceEntry? refData;
 
-        public WDC1Row(WDC1Reader reader, BitReader data, uint id, ReferenceEntry? refData)
+        public WDC1Row(WDC1Reader reader, BitReader data, int id, ReferenceEntry? refData)
         {
             m_reader = reader;
             m_data = data;
@@ -34,7 +40,7 @@ namespace CASCLib
             commonData = reader.CommonData;
             this.refData = refData;
 
-            if (id != 0xFFFFFFFF)
+            if (id != -1)
                 Id = id;
             else
             {
@@ -43,11 +49,11 @@ namespace CASCLib
                 m_data.Position = columnMeta[idFieldIndex].RecordOffset;
                 m_data.Offset = Offset;
 
-                Id = GetFieldValue<uint>(0, m_data, fieldMeta[idFieldIndex], columnMeta[idFieldIndex], palletData[idFieldIndex], commonData[idFieldIndex]);
+                Id = GetFieldValue<int>(0, m_data, fieldMeta[idFieldIndex], columnMeta[idFieldIndex], palletData[idFieldIndex], commonData[idFieldIndex]);
             }
         }
 
-        private static Dictionary<Type, Func<uint, BitReader, FieldMetaData, ColumnMetaData, Value32[], Dictionary<uint, Value32>, Dictionary<int, string>, object>> simpleReaders = new Dictionary<Type, Func<uint, BitReader, FieldMetaData, ColumnMetaData, Value32[], Dictionary<uint, Value32>, Dictionary<int, string>, object>>
+        private static Dictionary<Type, Func<int, BitReader, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>, Dictionary<long, string>, object>> simpleReaders = new Dictionary<Type, Func<int, BitReader, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>, Dictionary<long, string>, object>>
         {
             [typeof(float)] = (id, data, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValue<float>(id, data, fieldMeta, columnMeta, palletData, commonData),
             [typeof(int)] = (id, data, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValue<int>(id, data, fieldMeta, columnMeta, palletData, commonData),
@@ -59,7 +65,7 @@ namespace CASCLib
             [typeof(string)] = (id, data, fieldMeta, columnMeta, palletData, commonData, stringTable) => { int strOfs = GetFieldValue<int>(id, data, fieldMeta, columnMeta, palletData, commonData); return stringTable[strOfs]; },
         };
 
-        private static Dictionary<Type, Func<BitReader, FieldMetaData, ColumnMetaData, Value32[], Dictionary<uint, Value32>, Dictionary<int, string>, int, object>> arrayReaders = new Dictionary<Type, Func<BitReader, FieldMetaData, ColumnMetaData, Value32[], Dictionary<uint, Value32>, Dictionary<int, string>, int, object>>
+        private static Dictionary<Type, Func<BitReader, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>, Dictionary<long, string>, int, object>> arrayReaders = new Dictionary<Type, Func<BitReader, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>, Dictionary<long, string>, int, object>>
         {
             [typeof(float)] = (data, fieldMeta, columnMeta, palletData, commonData, stringTable, arrayIndex) => GetFieldValueArray<float>(data, fieldMeta, columnMeta, palletData, commonData, arrayIndex + 1)[arrayIndex],
             [typeof(int)] = (data, fieldMeta, columnMeta, palletData, commonData, stringTable, arrayIndex) => GetFieldValueArray<int>(data, fieldMeta, columnMeta, palletData, commonData, arrayIndex + 1)[arrayIndex],
@@ -101,7 +107,7 @@ namespace CASCLib
             return (T)value;
         }
 
-        private static T GetFieldValue<T>(uint Id, BitReader r, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<uint, Value32> commonData) where T : struct
+        private static T GetFieldValue<T>(int Id, BitReader r, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<int, Value32> commonData) where T : struct
         {
             switch (columnMeta.CompressionType)
             {
@@ -128,7 +134,7 @@ namespace CASCLib
             throw new Exception(string.Format("Unexpected compression type {0}", columnMeta.CompressionType));
         }
 
-        private static T[] GetFieldValueArray<T>(BitReader r, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<uint, Value32> commonData, int arraySize) where T : struct
+        private static T[] GetFieldValueArray<T>(BitReader r, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<int, Value32> commonData, int arraySize) where T : struct
         {
             switch (columnMeta.CompressionType)
             {
@@ -171,51 +177,16 @@ namespace CASCLib
             throw new Exception(string.Format("Unexpected compression type {0}", columnMeta.CompressionType));
         }
 
-        internal WDC1Row Clone()
+        public IDB2Row Clone()
         {
-            return (WDC1Row)MemberwiseClone();
+            return (IDB2Row)MemberwiseClone();
         }
     }
 
-    public class WDC1Reader : IEnumerable<KeyValuePair<uint, WDC1Row>>
+    public class WDC1Reader : DB2Reader
     {
         private const int HeaderSize = 84;
         private const uint WDC1FmtSig = 0x31434457; // WDC1
-
-        public int RecordsCount { get; private set; }
-        public int FieldsCount { get; private set; }
-        public int RecordSize { get; private set; }
-        public int StringTableSize { get; private set; }
-        public int MinIndex { get; private set; }
-        public int MaxIndex { get; private set; }
-        public int IdFieldIndex { get; private set; }
-
-        private readonly FieldMetaData[] m_meta;
-        public FieldMetaData[] Meta => m_meta;
-
-        private uint[] m_indexData;
-        public uint[] IndexData => m_indexData;
-
-        private ColumnMetaData[] m_columnMeta;
-        public ColumnMetaData[] ColumnMeta => m_columnMeta;
-
-        private Value32[][] m_palletData;
-        public Value32[][] PalletData => m_palletData;
-
-        private Dictionary<uint, Value32>[] m_commonData;
-        public Dictionary<uint, Value32>[] CommonData => m_commonData;
-
-        public Dictionary<int, string> StringTable => m_stringsTable;
-
-        private Dictionary<uint, WDC1Row> _Records = new Dictionary<uint, WDC1Row>();
-
-        // normal records data
-        private byte[] recordsData;
-        private Dictionary<int, string> m_stringsTable;
-
-        // sparse records data
-        private byte[] sparseData;
-        private SparseEntry[] sparseEntries;
 
         public WDC1Reader(string dbcFile) : this(new FileStream(dbcFile, FileMode.Open)) { }
 
@@ -270,7 +241,7 @@ namespace CASCLib
                     Array.Resize(ref recordsData, recordsData.Length + 8); // pad with extra zeros so we don't crash when reading
 
                     // string data
-                    m_stringsTable = new Dictionary<int, string>();
+                    m_stringsTable = new Dictionary<long, string>();
 
                     for (int i = 0; i < StringTableSize;)
                     {
@@ -298,13 +269,13 @@ namespace CASCLib
                 }
 
                 // index data
-                m_indexData = reader.ReadArray<uint>(indexDataSize / 4);
+                m_indexData = reader.ReadArray<int>(indexDataSize / 4);
 
                 // duplicate rows data
-                Dictionary<uint, uint> copyData = new Dictionary<uint, uint>();
+                Dictionary<int, int> copyData = new Dictionary<int, int>();
 
                 for (int i = 0; i < copyTableSize / 8; i++)
-                    copyData[reader.ReadUInt32()] = reader.ReadUInt32();
+                    copyData[reader.ReadInt32()] = reader.ReadInt32();
 
                 // column meta data
                 m_columnMeta = reader.ReadArray<ColumnMetaData>(FieldsCount);
@@ -321,17 +292,17 @@ namespace CASCLib
                 }
 
                 // common data
-                m_commonData = new Dictionary<uint, Value32>[m_columnMeta.Length];
+                m_commonData = new Dictionary<int, Value32>[m_columnMeta.Length];
 
                 for (int i = 0; i < m_columnMeta.Length; i++)
                 {
                     if (m_columnMeta[i].CompressionType == CompressionType.Common)
                     {
-                        Dictionary<uint, Value32> commonValues = new Dictionary<uint, Value32>();
+                        Dictionary<int, Value32> commonValues = new Dictionary<int, Value32>();
                         m_commonData[i] = commonValues;
 
                         for (int j = 0; j < m_columnMeta[i].AdditionalDataSize / 8; j++)
-                            commonValues[reader.ReadUInt32()] = reader.Read<Value32>();
+                            commonValues[reader.ReadInt32()] = reader.Read<Value32>();
                     }
                 }
 
@@ -342,12 +313,12 @@ namespace CASCLib
                 {
                     refData = new ReferenceData
                     {
-                        NumRecords = reader.ReadUInt32(),
-                        MinId = reader.ReadUInt32(),
-                        MaxId = reader.ReadUInt32()
+                        NumRecords = reader.ReadInt32(),
+                        MinId = reader.ReadInt32(),
+                        MaxId = reader.ReadInt32()
                     };
 
-                    refData.Entries = reader.ReadArray<ReferenceEntry>((int)refData.NumRecords);
+                    refData.Entries = reader.ReadArray<ReferenceEntry>(refData.NumRecords);
                 }
 
                 BitReader bitReader = new BitReader(recordsData);
@@ -357,7 +328,7 @@ namespace CASCLib
                     bitReader.Position = 0;
                     bitReader.Offset = i * RecordSize;
 
-                    WDC1Row rec = new WDC1Row(this, bitReader, indexDataSize != 0 ? m_indexData[i] : 0xFFFFFFFF, refData?.Entries[i]);
+                    IDB2Row rec = new WDC1Row(this, bitReader, indexDataSize != 0 ? m_indexData[i] : -1, refData?.Entries[i]);
 
                     if (indexDataSize != 0)
                         _Records.Add(m_indexData[i], rec);
@@ -370,34 +341,11 @@ namespace CASCLib
 
                 foreach (var copyRow in copyData)
                 {
-                    WDC1Row rec = _Records[copyRow.Value].Clone();
+                    IDB2Row rec = _Records[copyRow.Value].Clone();
                     rec.Id = copyRow.Key;
                     _Records.Add(copyRow.Key, rec);
                 }
             }
-        }
-
-        public bool HasRow(uint id)
-        {
-            return _Records.ContainsKey(id);
-        }
-
-        public WDC1Row GetRow(uint id)
-        {
-            if (!_Records.ContainsKey(id))
-                return null;
-
-            return _Records[id];
-        }
-
-        public IEnumerator<KeyValuePair<uint, WDC1Row>> GetEnumerator()
-        {
-            return _Records.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _Records.GetEnumerator();
         }
     }
 
@@ -493,9 +441,9 @@ namespace CASCLib
 
     public class ReferenceData
     {
-        public uint NumRecords { get; set; }
-        public uint MinId { get; set; }
-        public uint MaxId { get; set; }
+        public int NumRecords { get; set; }
+        public int MinId { get; set; }
+        public int MaxId { get; set; }
         public ReferenceEntry[] Entries { get; set; }
     }
 

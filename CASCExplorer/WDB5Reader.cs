@@ -10,11 +10,11 @@ namespace CASCLib
     public class DB5Row
     {
         private byte[] m_data;
-        private DB5Reader m_reader;
+        private WDB5Reader m_reader;
 
         public byte[] Data => m_data;
 
-        public DB5Row(DB5Reader reader, byte[] data)
+        public DB5Row(WDB5Reader reader, byte[] data)
         {
             m_reader = reader;
             m_data = data;
@@ -104,7 +104,7 @@ namespace CASCLib
         public short Offset { get; set; }
     }
 
-    public class DB5Reader : IEnumerable<KeyValuePair<int, DB5Row>>
+    public class WDB5Reader : IEnumerable<KeyValuePair<int, DB5Row>>
     {
         private const int HeaderSize = 48;
         private const uint DB5FmtSig = 0x35424457;          // WDB5
@@ -124,9 +124,9 @@ namespace CASCLib
 
         private Dictionary<int, DB5Row> m_index = new Dictionary<int, DB5Row>();
 
-        public DB5Reader(string dbcFile) : this(new FileStream(dbcFile, FileMode.Open)) { }
+        public WDB5Reader(string dbcFile) : this(new FileStream(dbcFile, FileMode.Open)) { }
 
-        public DB5Reader(Stream stream)
+        public WDB5Reader(Stream stream)
         {
             using (var reader = new BinaryReader(stream, Encoding.UTF8))
             {

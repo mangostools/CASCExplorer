@@ -10,7 +10,7 @@ namespace CASCLib
     public class DB6Row
     {
         private byte[] m_data;
-        private DB6Reader m_reader;
+        private WDB6Reader m_reader;
 
         public byte[] Data
         {
@@ -18,7 +18,7 @@ namespace CASCLib
             set => m_data = value;
         }
 
-        public DB6Row(DB6Reader reader, byte[] data)
+        public DB6Row(WDB6Reader reader, byte[] data)
         {
             m_reader = reader;
             m_data = data;
@@ -102,7 +102,7 @@ namespace CASCLib
         }
     }
 
-    public class DB6Reader : IEnumerable<KeyValuePair<int, DB6Row>>
+    public class WDB6Reader : IEnumerable<KeyValuePair<int, DB6Row>>
     {
         private const int HeaderSize = 56;
         private const uint DB6FmtSig = 0x36424457;          // WDB6
@@ -122,9 +122,9 @@ namespace CASCLib
 
         private Dictionary<int, DB6Row> m_index = new Dictionary<int, DB6Row>();
 
-        public DB6Reader(string dbcFile) : this(new FileStream(dbcFile, FileMode.Open)) { }
+        public WDB6Reader(string dbcFile) : this(new FileStream(dbcFile, FileMode.Open)) { }
 
-        public DB6Reader(Stream stream)
+        public WDB6Reader(Stream stream)
         {
             using (var reader = new BinaryReader(stream, Encoding.UTF8))
             {

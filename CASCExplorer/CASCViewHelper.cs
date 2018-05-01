@@ -97,7 +97,7 @@ namespace CASCExplorer
             {
                 FileScanner scanner = new FileScanner(_casc, _root);
 
-                Dictionary<uint, List<string>> idToName = new Dictionary<uint, List<string>>();
+                Dictionary<int, List<string>> idToName = new Dictionary<int, List<string>>();
 
                 if (_casc.Config.GameType == CASCGameType.WoW && AnalyzeSoundFiles)
                 {
@@ -105,7 +105,7 @@ namespace CASCExplorer
                     {
                         using (Stream stream = _casc.OpenFile("DBFilesClient\\SoundEntries.db2"))
                         {
-                            DB2Reader se = new DB2Reader(stream);
+                            WDB2Reader se = new WDB2Reader(stream);
 
                             foreach (var row in se)
                             {
@@ -117,7 +117,7 @@ namespace CASCExplorer
 
                                 for (int i = 3; i < 23; i++)
                                 {
-                                    uint id = row.Value.GetField<uint>(i);
+                                    int id = row.Value.GetField<int>(i);
 
                                     if (!idToName.ContainsKey(id))
                                         idToName[id] = new List<string>();
@@ -138,16 +138,16 @@ namespace CASCExplorer
                             WDC2Reader ske = new WDC2Reader(skeStream);
                             WDC2Reader skn = new WDC2Reader(sknStream);
 
-                            Dictionary<uint, List<uint>> lookup = new Dictionary<uint, List<uint>>();
+                            Dictionary<int, List<int>> lookup = new Dictionary<int, List<int>>();
 
                             foreach (var row in ske)
                             {
-                                uint soundKitId = row.Value.GetField<uint>(0);
+                                int soundKitId = row.Value.GetField<int>(0);
 
                                 if (!lookup.ContainsKey(soundKitId))
-                                    lookup[soundKitId] = new List<uint>();
+                                    lookup[soundKitId] = new List<int>();
 
-                                lookup[soundKitId].Add(row.Value.GetField<uint>(1));
+                                lookup[soundKitId].Add(row.Value.GetField<int>(1));
                             }
 
                             foreach (var row in sk)
@@ -156,7 +156,7 @@ namespace CASCExplorer
 
                                 int type = row.Value.GetField<byte>(6);
 
-                                if (!lookup.TryGetValue(row.Key, out List<uint> ske_entries))
+                                if (!lookup.TryGetValue(row.Key, out List<int> ske_entries))
                                     continue;
 
                                 bool many = ske_entries.Count > 1;
@@ -198,7 +198,7 @@ namespace CASCExplorer
                 {
                     CASCFile unknownFile = unknownEntry as CASCFile;
 
-                    if (idToName.TryGetValue((uint)wowRoot.GetFileDataIdByHash(unknownFile.Hash), out List<string> name))
+                    if (idToName.TryGetValue(wowRoot.GetFileDataIdByHash(unknownFile.Hash), out List<string> name))
                     {
                         if (name.Count == 1)
                             unknownFile.FullName = name[0];

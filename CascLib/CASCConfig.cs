@@ -163,6 +163,7 @@ namespace CASCLib
             string cdnKey = config._VersionsData[config._versionsIndex]["CDNConfig"].ToLower();
             //string cdnKey = "a7483232ba17b111f42ffbcd1e7f9eeb";
             //string cdnKey = "8c4ac7ab2f96ab75dab58448ffd07842";
+            //string cdnKey = "47615445690e4dd6b998558e33ed50d2";
             using (Stream stream = CDNIndexHandler.OpenConfigFileDirect(config, cdnKey))
             {
                 config._CDNConfig = KeyValueConfig.ReadKeyValueConfig(stream);
@@ -204,6 +205,7 @@ namespace CASCLib
             string buildKey = config._VersionsData[config._versionsIndex]["BuildConfig"].ToLower();
             //string buildKey = "033c730bed51704e2bac595c9a2794cf";
             //string buildKey = "f639eab0a11d5b7a9099bc188badaa2e";
+            //string buildKey = "38ac0190903e71643e14ef9db0087c1d";
             using (Stream stream = CDNIndexHandler.OpenConfigFileDirect(config, buildKey))
             {
                 var cfg = KeyValueConfig.ReadKeyValueConfig(stream);
