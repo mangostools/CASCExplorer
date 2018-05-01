@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -9,31 +8,31 @@ namespace CASCLib
     public class WDC2Row : IDB2Row
     {
         private BitReader m_data;
-        private WDC2Reader m_reader;
-        private int Offset;
-        private long m_recordsOffset;
+        private DB2Reader m_reader;
+        private int m_dataOffset;
+        private int m_recordsOffset;
 
         public int Id { get; set; }
 
-        private FieldMetaData[] fieldMeta;
-        private ColumnMetaData[] columnMeta;
-        private Value32[][] palletData;
-        private Dictionary<int, Value32>[] commonData;
-        private ReferenceEntry? refData;
+        private FieldMetaData[] m_fieldMeta;
+        private ColumnMetaData[] m_columnMeta;
+        private Value32[][] m_palletData;
+        private Dictionary<int, Value32>[] m_commonData;
+        private ReferenceEntry? m_refData;
 
-        public WDC2Row(WDC2Reader reader, BitReader data, long recordsOffset, int id, ReferenceEntry? refData)
+        public WDC2Row(DB2Reader reader, BitReader data, int recordsOffset, int id, ReferenceEntry? refData)
         {
             m_reader = reader;
             m_data = data;
             m_recordsOffset = recordsOffset;
 
-            Offset = m_data.Offset;
+            m_dataOffset = m_data.Offset;
 
-            fieldMeta = reader.Meta;
-            columnMeta = reader.ColumnMeta;
-            palletData = reader.PalletData;
-            commonData = reader.CommonData;
-            this.refData = refData;
+            m_fieldMeta = reader.Meta;
+            m_columnMeta = reader.ColumnMeta;
+            m_palletData = reader.PalletData;
+            m_commonData = reader.CommonData;
+            m_refData = refData;
 
             if (id != -1)
                 Id = id;
@@ -41,14 +40,13 @@ namespace CASCLib
             {
                 int idFieldIndex = reader.IdFieldIndex;
 
-                m_data.Position = columnMeta[idFieldIndex].RecordOffset;
-                m_data.Offset = Offset;
+                m_data.Position = m_columnMeta[idFieldIndex].RecordOffset;
 
-                Id = GetFieldValue<int>(0, m_data, fieldMeta[idFieldIndex], columnMeta[idFieldIndex], palletData[idFieldIndex], commonData[idFieldIndex]);
+                Id = GetFieldValue<int>(0, m_data, m_fieldMeta[idFieldIndex], m_columnMeta[idFieldIndex], m_palletData[idFieldIndex], m_commonData[idFieldIndex]);
             }
         }
 
-        private static Dictionary<Type, Func<int, BitReader, long, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>, Dictionary<long, string>, object>> simpleReaders = new Dictionary<Type, Func<int, BitReader, long, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>, Dictionary<long, string>, object>>
+        private static Dictionary<Type, Func<int, BitReader, int, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>, Dictionary<long, string>, object>> simpleReaders = new Dictionary<Type, Func<int, BitReader, int, FieldMetaData, ColumnMetaData, Value32[], Dictionary<int, Value32>, Dictionary<long, string>, object>>
         {
             [typeof(float)] = (id, data, recordsOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValue<float>(id, data, fieldMeta, columnMeta, palletData, commonData),
             [typeof(int)] = (id, data, recordsOffset, fieldMeta, columnMeta, palletData, commonData, stringTable) => GetFieldValue<int>(id, data, fieldMeta, columnMeta, palletData, commonData),
@@ -77,24 +75,24 @@ namespace CASCLib
 
             if (fieldIndex >= m_reader.Meta.Length)
             {
-                value = refData?.Id ?? 0;
+                value = m_refData?.Id ?? 0;
                 return (T)value;
             }
 
-            m_data.Position = columnMeta[fieldIndex].RecordOffset;
-            m_data.Offset = Offset;
+            m_data.Position = m_columnMeta[fieldIndex].RecordOffset;
+            m_data.Offset = m_dataOffset;
 
             if (arrayIndex >= 0)
             {
                 if (arrayReaders.TryGetValue(typeof(T), out var reader))
-                    value = reader(m_data, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], m_reader.StringTable, arrayIndex);
+                    value = reader(m_data, m_fieldMeta[fieldIndex], m_columnMeta[fieldIndex], m_palletData[fieldIndex], m_commonData[fieldIndex], m_reader.StringTable, arrayIndex);
                 else
                     throw new Exception("Unhandled array type: " + typeof(T).Name);
             }
             else
             {
                 if (simpleReaders.TryGetValue(typeof(T), out var reader))
-                    value = reader(Id, m_data, m_recordsOffset, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], m_reader.StringTable);
+                    value = reader(Id, m_data, m_recordsOffset, m_fieldMeta[fieldIndex], m_columnMeta[fieldIndex], m_palletData[fieldIndex], m_commonData[fieldIndex], m_reader.StringTable);
                 else
                     throw new Exception("Unhandled field type: " + typeof(T).Name);
             }
@@ -180,78 +178,6 @@ namespace CASCLib
         }
     }
 
-    public class DB2Reader : IEnumerable<KeyValuePair<int, IDB2Row>>
-    {
-        public int RecordsCount { get; protected set; }
-        public int FieldsCount { get; protected set; }
-        public int RecordSize { get; protected set; }
-        public int StringTableSize { get; protected set; }
-        public int MinIndex { get; protected set; }
-        public int MaxIndex { get; protected set; }
-        public int IdFieldIndex { get; protected set; }
-
-        protected FieldMetaData[] m_meta;
-        public FieldMetaData[] Meta => m_meta;
-
-        protected int[] m_indexData;
-        public int[] IndexData => m_indexData;
-
-        protected ColumnMetaData[] m_columnMeta;
-        public ColumnMetaData[] ColumnMeta => m_columnMeta;
-
-        protected Value32[][] m_palletData;
-        public Value32[][] PalletData => m_palletData;
-
-        protected Dictionary<int, Value32>[] m_commonData;
-        public Dictionary<int, Value32>[] CommonData => m_commonData;
-
-        public Dictionary<long, string> StringTable => m_stringsTable;
-
-        protected Dictionary<int, IDB2Row> _Records = new Dictionary<int, IDB2Row>();
-
-        // normal records data
-        protected byte[] recordsData;
-        protected Dictionary<long, string> m_stringsTable;
-
-        // sparse records data
-        protected byte[] sparseData;
-        protected SparseEntry[] sparseEntries;
-
-        public bool HasRow(int id)
-        {
-            return _Records.ContainsKey(id);
-        }
-
-        public IDB2Row GetRow(int id)
-        {
-            _Records.TryGetValue(id, out IDB2Row row);
-            return row;
-        }
-
-        public IEnumerator<KeyValuePair<int, IDB2Row>> GetEnumerator()
-        {
-            return _Records.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _Records.GetEnumerator();
-        }
-    }
-
-    public struct SectionHeader
-    {
-        public int unk1;
-        public int unk2;
-        public int FileOffset;
-        public int NumRecords;
-        public int StringTableSize;
-        public int CopyTableSize;
-        public int SparseTableOffset; // CatalogDataOffset, absolute value, {uint offset, ushort size}[MaxId - MinId + 1]
-        public int IndexDataSize; // int indexData[IndexDataSize / 4]
-        public int ParentLookupDataSize; // uint NumRecords, uint minId, uint maxId, {uint id, uint index}[NumRecords], questionable usefulness...
-    }
-
     public class WDC2Reader : DB2Reader
     {
         private const int HeaderSize = 84 + 6 * 4;
@@ -298,16 +224,6 @@ namespace CASCLib
                     throw new Exception("sectionsCount > 1");
 
                 SectionHeader[] sections = reader.ReadArray<SectionHeader>(sectionsCount);
-
-                //int unk1 = reader.ReadInt32();
-                //int unk2 = reader.ReadInt32();
-                //int FileOffset = reader.ReadInt32();
-                //int NumRecords2 = reader.ReadInt32();
-                //int StringTableSize2 = reader.ReadInt32();
-                //int copyTableSize = reader.ReadInt32();
-                //int sparseTableOffset = reader.ReadInt32(); // absolute value, {uint offset, ushort size}[MaxId - MinId + 1]
-                //int indexDataSize = reader.ReadInt32(); // int indexData[IndexDataSize / 4]
-                //int referenceDataSize = reader.ReadInt32(); // uint NumRecords, uint minId, uint maxId, {uint id, uint index}[NumRecords], questionable usefulness...
 
                 // field meta data
                 m_meta = reader.ReadArray<FieldMetaData>(FieldsCount);

@@ -6,39 +6,32 @@ using System.Text;
 
 namespace CASCLib
 {
-    public interface IDB2Row
-    {
-        int Id { get; set; }
-        T GetField<T>(int fieldIndex, int arrayIndex = -1);
-        IDB2Row Clone();
-    }
-
     public class WDC1Row : IDB2Row
     {
         private BitReader m_data;
-        private WDC1Reader m_reader;
-        private int Offset;
+        private DB2Reader m_reader;
+        private int m_dataOffset;
 
         public int Id { get; set; }
 
-        private FieldMetaData[] fieldMeta;
-        private ColumnMetaData[] columnMeta;
-        private Value32[][] palletData;
-        private Dictionary<int, Value32>[] commonData;
-        private ReferenceEntry? refData;
+        private FieldMetaData[] m_fieldMeta;
+        private ColumnMetaData[] m_columnMeta;
+        private Value32[][] m_palletData;
+        private Dictionary<int, Value32>[] m_commonData;
+        private ReferenceEntry? m_refData;
 
-        public WDC1Row(WDC1Reader reader, BitReader data, int id, ReferenceEntry? refData)
+        public WDC1Row(DB2Reader reader, BitReader data, int id, ReferenceEntry? refData)
         {
             m_reader = reader;
             m_data = data;
 
-            Offset = m_data.Offset;
+            m_dataOffset = m_data.Offset;
 
-            fieldMeta = reader.Meta;
-            columnMeta = reader.ColumnMeta;
-            palletData = reader.PalletData;
-            commonData = reader.CommonData;
-            this.refData = refData;
+            m_fieldMeta = reader.Meta;
+            m_columnMeta = reader.ColumnMeta;
+            m_palletData = reader.PalletData;
+            m_commonData = reader.CommonData;
+            m_refData = refData;
 
             if (id != -1)
                 Id = id;
@@ -46,10 +39,9 @@ namespace CASCLib
             {
                 int idFieldIndex = reader.IdFieldIndex;
 
-                m_data.Position = columnMeta[idFieldIndex].RecordOffset;
-                m_data.Offset = Offset;
+                m_data.Position = m_columnMeta[idFieldIndex].RecordOffset;
 
-                Id = GetFieldValue<int>(0, m_data, fieldMeta[idFieldIndex], columnMeta[idFieldIndex], palletData[idFieldIndex], commonData[idFieldIndex]);
+                Id = GetFieldValue<int>(0, m_data, m_fieldMeta[idFieldIndex], m_columnMeta[idFieldIndex], m_palletData[idFieldIndex], m_commonData[idFieldIndex]);
             }
         }
 
@@ -82,24 +74,24 @@ namespace CASCLib
 
             if (fieldIndex >= m_reader.Meta.Length)
             {
-                value = refData?.Id ?? 0;
+                value = m_refData?.Id ?? 0;
                 return (T)value;
             }
 
-            m_data.Position = columnMeta[fieldIndex].RecordOffset;
-            m_data.Offset = Offset;
+            m_data.Position = m_columnMeta[fieldIndex].RecordOffset;
+            m_data.Offset = m_dataOffset;
 
             if (arrayIndex >= 0)
             {
                 if (arrayReaders.TryGetValue(typeof(T), out var reader))
-                    value = reader(m_data, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], m_reader.StringTable, arrayIndex);
+                    value = reader(m_data, m_fieldMeta[fieldIndex], m_columnMeta[fieldIndex], m_palletData[fieldIndex], m_commonData[fieldIndex], m_reader.StringTable, arrayIndex);
                 else
                     throw new Exception("Unhandled array type: " + typeof(T).Name);
             }
             else
             {
                 if (simpleReaders.TryGetValue(typeof(T), out var reader))
-                    value = reader(Id, m_data, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], m_reader.StringTable);
+                    value = reader(Id, m_data, m_fieldMeta[fieldIndex], m_columnMeta[fieldIndex], m_palletData[fieldIndex], m_commonData[fieldIndex], m_reader.StringTable);
                 else
                     throw new Exception("Unhandled field type: " + typeof(T).Name);
             }
@@ -196,14 +188,14 @@ namespace CASCLib
             {
                 if (reader.BaseStream.Length < HeaderSize)
                 {
-                    throw new InvalidDataException(String.Format("DB6 file is corrupted!"));
+                    throw new InvalidDataException(String.Format("WDC1 file is corrupted!"));
                 }
 
                 uint magic = reader.ReadUInt32();
 
                 if (magic != WDC1FmtSig)
                 {
-                    throw new InvalidDataException(String.Format("DB6 file is corrupted!"));
+                    throw new InvalidDataException(String.Format("WDC1 file is corrupted!"));
                 }
 
                 RecordsCount = reader.ReadInt32();
@@ -347,188 +339,5 @@ namespace CASCLib
                 }
             }
         }
-    }
-
-    public struct FieldMetaData
-    {
-        public short Bits;
-        public short Offset;
-    }
-
-    [StructLayout(LayoutKind.Explicit)]
-    public struct ColumnMetaData
-    {
-        [FieldOffset(0)]
-        public ushort RecordOffset;
-        [FieldOffset(2)]
-        public ushort Size;
-        [FieldOffset(4)]
-        public uint AdditionalDataSize;
-        [FieldOffset(8)]
-        public CompressionType CompressionType;
-        [FieldOffset(12)]
-        public ColumnCompressionData_Immediate Immediate;
-        [FieldOffset(12)]
-        public ColumnCompressionData_Pallet Pallet;
-        [FieldOffset(12)]
-        public ColumnCompressionData_Common Common;
-    }
-
-    public struct ColumnCompressionData_Immediate
-    {
-        public int BitOffset;
-        public int BitWidth;
-        public int Flags; // 0x1 signed
-    };
-
-    public struct ColumnCompressionData_Pallet
-    {
-        public int BitOffset;
-        public int BitWidth;
-        public int Cardinality;
-    };
-
-    public struct ColumnCompressionData_Common
-    {
-        public Value32 DefaultValue;
-        public int B;
-        public int C;
-    };
-
-    public struct Value32
-    {
-        unsafe fixed byte Value[4];
-
-        public T GetValue<T>() where T : struct
-        {
-            unsafe
-            {
-                fixed (byte* ptr = Value)
-                    return FastStruct<T>.ArrayToStructure(ref ptr[0]);
-            }
-        }
-    }
-
-    public struct Value64
-    {
-        unsafe fixed byte Value[8];
-
-        public T GetValue<T>() where T : struct
-        {
-            unsafe
-            {
-                fixed (byte* ptr = Value)
-                    return FastStruct<T>.ArrayToStructure(ref ptr[0]);
-            }
-        }
-    }
-
-    public enum CompressionType
-    {
-        None = 0,
-        Immediate = 1,
-        Common = 2,
-        Pallet = 3,
-        PalletArray = 4,
-        SignedImmediate = 5
-    }
-
-    public struct ReferenceEntry
-    {
-        public uint Id;
-        public uint Index;
-    }
-
-    public class ReferenceData
-    {
-        public int NumRecords { get; set; }
-        public int MinId { get; set; }
-        public int MaxId { get; set; }
-        public ReferenceEntry[] Entries { get; set; }
-    }
-
-    [Flags]
-    public enum DB2Flags
-    {
-        None = 0x0,
-        Sparse = 0x1,
-        SecondaryKey = 0x2,
-        Index = 0x4,
-        Unknown1 = 0x8,
-        Unknown2 = 0x10
-    }
-
-    public struct SparseEntry
-    {
-        public uint Offset;
-        public uint Size;
-    }
-
-    public class BitReader
-    {
-        private byte[] m_array;
-        private int m_readPos;
-        private int m_readOffset;
-
-        public int Position { get => m_readPos; set => m_readPos = value; }
-        public int Offset { get => m_readOffset; set => m_readOffset = value; }
-        public byte[] Data { get => m_array; set => m_array = value; }
-
-        public BitReader(byte[] data)
-        {
-            m_array = data;
-        }
-
-        public BitReader(byte[] data, int offset)
-        {
-            m_array = data;
-            m_readOffset = offset;
-        }
-
-        public uint ReadUInt32(int numBits)
-        {
-            uint result = FastStruct<uint>.ArrayToStructure(ref m_array[m_readOffset + (m_readPos >> 3)]) << (32 - numBits - (m_readPos & 7)) >> (32 - numBits);
-            m_readPos += numBits;
-            return result;
-        }
-
-        public ulong ReadUInt64(int numBits)
-        {
-            ulong result = FastStruct<ulong>.ArrayToStructure(ref m_array[m_readOffset + (m_readPos >> 3)]) << (64 - numBits - (m_readPos & 7)) >> (64 - numBits);
-            m_readPos += numBits;
-            return result;
-        }
-
-        public Value32 ReadValue32(int numBits)
-        {
-            unsafe
-            {
-                ulong result = ReadUInt32(numBits);
-                return *(Value32*)&result;
-            }
-        }
-
-        public Value64 ReadValue64(int numBits)
-        {
-            unsafe
-            {
-                ulong result = ReadUInt64(numBits);
-                return *(Value64*)&result;
-            }
-        }
-
-        // this will probably work in C# 7.3 once blittable generic constrain added, or not...
-        //public unsafe T Read<T>(int numBits) where T : struct
-        //{
-        //    //fixed (byte* ptr = &m_array[m_readOffset + (m_readPos >> 3)])
-        //    //{
-        //    //    T val = *(T*)ptr << (sizeof(T) - numBits - (m_readPos & 7)) >> (sizeof(T) - numBits);
-        //    //    m_readPos += numBits;
-        //    //    return val;
-        //    //}
-        //    //T result = FastStruct<T>.ArrayToStructure(ref m_array[m_readOffset + (m_readPos >> 3)]) << (32 - numBits - (m_readPos & 7)) >> (32 - numBits);
-        //    //m_readPos += numBits;
-        //    //return result;
-        //}
     }
 }
