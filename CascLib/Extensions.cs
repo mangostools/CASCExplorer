@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace CASCLib
@@ -60,13 +59,35 @@ namespace CASCLib
 
         public static void CopyBytes(this Stream input, Stream output, int bytes)
         {
-            byte[] buffer = new byte[32768];
+            byte[] buffer = new byte[0x4000];
             int read;
             while (bytes > 0 && (read = input.Read(buffer, 0, Math.Min(buffer.Length, bytes))) > 0)
             {
                 output.Write(buffer, 0, read);
                 bytes -= read;
             }
+        }
+
+        public static void CopyToStream(this Stream src, Stream dst, long len, BackgroundWorkerEx progressReporter = null)
+        {
+            long done = 0;
+
+            // TODO: Span<byte>+stackalloc
+            byte[] buf = new byte[0x4000];
+
+            int count;
+            do
+            {
+                if (progressReporter != null && progressReporter.CancellationPending)
+                    return;
+
+                count = src.Read(buf, 0, buf.Length);
+                dst.Write(buf, 0, count);
+
+                done += count;
+
+                progressReporter?.ReportProgress((int)(done / (float)len * 100));
+            } while (count > 0);
         }
 
         public static void ExtractToFile(this Stream input, string path, string name)
@@ -121,7 +142,7 @@ namespace CASCLib
 
             for (int i = 0; i < bits.Length; ++i)
             {
-                sb.Append(bits[i] ? "1" : "0");
+                sb.Append(bits[i] ? '1' : '0');
             }
 
             return sb.ToString();

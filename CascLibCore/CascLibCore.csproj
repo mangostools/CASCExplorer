@@ -49,7 +49,6 @@
     <Compile Include="..\CascLib\RootHandlers\WC3RootHandler.cs" Link="RootHandlers\WC3RootHandler.cs" />
     <Compile Include="..\CascLib\RootHandlers\WowRootHandler.cs" Link="RootHandlers\WowRootHandler.cs" />
     <Compile Include="..\CascLib\Salsa20.cs" Link="Salsa20.cs" />
-    <Compile Include="..\CascLib\SyncDownloader.cs" Link="SyncDownloader.cs" />
     <Compile Include="..\CascLib\Wildcard.cs" Link="Wildcard.cs" />
   </ItemGroup>
 
