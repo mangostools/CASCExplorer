@@ -18,6 +18,8 @@ namespace CASCLib
         public int FieldsCount { get; protected set; }
         public int RecordSize { get; protected set; }
         public int StringTableSize { get; protected set; }
+        public uint TableHash { get; protected set; }
+        public uint LayoutHash { get; protected set; }
         public int MinIndex { get; protected set; }
         public int MaxIndex { get; protected set; }
         public int IdFieldIndex { get; protected set; }

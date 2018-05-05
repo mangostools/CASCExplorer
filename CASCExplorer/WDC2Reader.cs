@@ -205,8 +205,8 @@ namespace CASCLib
                 FieldsCount = reader.ReadInt32();
                 RecordSize = reader.ReadInt32();
                 StringTableSize = reader.ReadInt32();
-                uint tableHash = reader.ReadUInt32();
-                uint layoutHash = reader.ReadUInt32();
+                TableHash = reader.ReadUInt32();
+                LayoutHash = reader.ReadUInt32();
                 MinIndex = reader.ReadInt32();
                 MaxIndex = reader.ReadInt32();
                 int locale = reader.ReadInt32();
