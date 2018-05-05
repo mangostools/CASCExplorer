@@ -187,16 +187,12 @@ namespace CASCLib
             using (var reader = new BinaryReader(stream, Encoding.UTF8))
             {
                 if (reader.BaseStream.Length < HeaderSize)
-                {
                     throw new InvalidDataException(String.Format("WDC1 file is corrupted!"));
-                }
 
                 uint magic = reader.ReadUInt32();
 
                 if (magic != WDC1FmtSig)
-                {
                     throw new InvalidDataException(String.Format("WDC1 file is corrupted!"));
-                }
 
                 RecordsCount = reader.ReadInt32();
                 FieldsCount = reader.ReadInt32();

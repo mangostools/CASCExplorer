@@ -180,7 +180,7 @@ namespace CASCLib
 
     public class WDC2Reader : DB2Reader
     {
-        private const int HeaderSize = 84 + 6 * 4;
+        private const int HeaderSize = 72 + 1 * 36;
         private const uint WDC2FmtSig = 0x32434457; // WDC2
 
         public WDC2Reader(string dbcFile) : this(new FileStream(dbcFile, FileMode.Open)) { }
@@ -190,16 +190,12 @@ namespace CASCLib
             using (var reader = new BinaryReader(stream, Encoding.UTF8))
             {
                 if (reader.BaseStream.Length < HeaderSize)
-                {
                     throw new InvalidDataException(String.Format("WDC2 file is corrupted!"));
-                }
 
                 uint magic = reader.ReadUInt32();
 
                 if (magic != WDC2FmtSig)
-                {
                     throw new InvalidDataException(String.Format("WDC2 file is corrupted!"));
-                }
 
                 RecordsCount = reader.ReadInt32();
                 FieldsCount = reader.ReadInt32();
