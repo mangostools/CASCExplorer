@@ -70,7 +70,7 @@ namespace CASCExplorer
 
             await Task.Run(() =>
             {
-                var installFiles = _casc.Install.GetEntries("Windows");
+                var installFiles = _casc.Install.GetEntriesByTag("Windows");
                 var build = _casc.Config.BuildName;
 
                 int numFiles = installFiles.Count();

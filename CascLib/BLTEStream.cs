@@ -30,7 +30,7 @@ namespace CASCLib
         public byte[] Data;
     }
 
-    class BLTEStream : Stream
+    public class BLTEStream : Stream
     {
         private BinaryReader _reader;
         private MD5 _md5 = MD5.Create();
