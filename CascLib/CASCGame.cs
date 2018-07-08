@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace CASCLib
 {
@@ -62,7 +63,7 @@ namespace CASCLib
                     return CASCGameType.S1;
             }
 
-            return CASCGameType.Unknown;
+            throw new Exception("Unable to detect game type by path");
         }
 
         public static CASCGameType DetectOnlineGame(string uid)
@@ -103,7 +104,7 @@ namespace CASCLib
             if (uid.StartsWith("dst2"))
                 return CASCGameType.Destiny2;
 
-            return CASCGameType.Unknown;
+            throw new Exception("Unable to detect game type by uid");
         }
 
         public static string GetDataFolder(CASCGameType gameType)
@@ -123,7 +124,7 @@ namespace CASCLib
             if (gameType == CASCGameType.Overwatch)
                 return "data/casc";
 
-            return null;
+            throw new Exception("GetDataFolder called with unsupported gameType");
         }
 
         public static bool SupportsLocaleSelection(CASCGameType gameType)
