@@ -106,11 +106,11 @@ namespace CASCLib
                 case CompressionType.None:
                     int bitSize = 32 - fieldMeta.Bits;
                     if (bitSize > 0)
-                        return r.ReadValue64(bitSize).GetValue<T>();
+                        return r.Read<T>(bitSize);
                     else
-                        return r.ReadValue64(columnMeta.Immediate.BitWidth).GetValue<T>();
+                        return r.Read<T>(columnMeta.Immediate.BitWidth);
                 case CompressionType.Immediate:
-                    return r.ReadValue64(columnMeta.Immediate.BitWidth).GetValue<T>();
+                    return r.Read<T>(columnMeta.Immediate.BitWidth);
                 case CompressionType.Common:
                     if (commonData.TryGetValue(Id, out Value32 val))
                         return val.GetValue<T>();
@@ -138,9 +138,9 @@ namespace CASCLib
                     for (int i = 0; i < arr1.Length; i++)
                     {
                         if (bitSize > 0)
-                            arr1[i] = r.ReadValue64(bitSize).GetValue<T>();
+                            arr1[i] = r.Read<T>(bitSize);
                         else
-                            arr1[i] = r.ReadValue64(columnMeta.Immediate.BitWidth).GetValue<T>();
+                            arr1[i] = r.Read<T>(columnMeta.Immediate.BitWidth);
                     }
 
                     return arr1;
@@ -148,7 +148,7 @@ namespace CASCLib
                     T[] arr2 = new T[arraySize];
 
                     for (int i = 0; i < arr2.Length; i++)
-                        arr2[i] = r.ReadValue64(columnMeta.Immediate.BitWidth).GetValue<T>();
+                        arr2[i] = r.Read<T>(columnMeta.Immediate.BitWidth);
 
                     return arr2;
                 case CompressionType.PalletArray:

@@ -122,29 +122,11 @@ namespace CASCLib
 
     public struct Value32
     {
-        unsafe fixed byte Value[4];
+        private uint Value;
 
         public T GetValue<T>() where T : unmanaged
         {
-            unsafe
-            {
-                fixed (byte* ptr = Value)
-                    return *(T*)ptr;
-            }
-        }
-    }
-
-    public struct Value64
-    {
-        unsafe fixed byte Value[8];
-
-        public T GetValue<T>() where T : unmanaged
-        {
-            unsafe
-            {
-                fixed (byte* ptr = Value)
-                    return *(T*)ptr;
-            }
+            return Unsafe.As<uint, T>(ref Value);
         }
     }
 
@@ -189,10 +171,10 @@ namespace CASCLib
         public uint Size;
     }
 
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct SectionHeader
     {
-        public int unk1;
-        public int unk2;
+        public ulong TactKeyLookup;
         public int FileOffset;
         public int NumRecords;
         public int StringTableSize;
@@ -237,47 +219,24 @@ namespace CASCLib
             return result;
         }
 
-        public Value32 ReadValue32(int numBits)
-        {
-            unsafe
-            {
-                ulong result = ReadUInt32(numBits);
-                return *(Value32*)&result;
-            }
-        }
-
-        public Value64 ReadValue64(int numBits)
+        public T Read<T>(int numBits) where T : unmanaged
         {
             unsafe
             {
                 ulong result = ReadUInt64(numBits);
-                return *(Value64*)&result;
+                return Unsafe.As<ulong, T>(ref result);
             }
         }
 
-        public Value64 ReadValue64Signed(int numBits)
+        public T ReadSigned<T>(int numBits) where T : unmanaged
         {
             unsafe
             {
                 ulong result = ReadUInt64(numBits);
                 ulong signedShift = (1UL << (numBits - 1));
                 result = (signedShift ^ result) - signedShift;
-                return *(Value64*)&result;
+                return Unsafe.As<ulong, T>(ref result);
             }
         }
-
-        // this will probably work in C# 7.3 once blittable generic constrain added, or not...
-        //public unsafe T Read<T>(int numBits) where T : struct
-        //{
-        //    //fixed (byte* ptr = &m_array[m_readOffset + (m_readPos >> 3)])
-        //    //{
-        //    //    T val = *(T*)ptr << (sizeof(T) - numBits - (m_readPos & 7)) >> (sizeof(T) - numBits);
-        //    //    m_readPos += numBits;
-        //    //    return val;
-        //    //}
-        //    //T result = FastStruct<T>.ArrayToStructure(ref m_array[m_readOffset + (m_readPos >> 3)]) << (32 - numBits - (m_readPos & 7)) >> (32 - numBits);
-        //    //m_readPos += numBits;
-        //    //return result;
-        //}
     }
 }
