@@ -99,7 +99,7 @@ namespace CASCLib
             return (T)value;
         }
 
-        private static T GetFieldValue<T>(int Id, BitReader r, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<int, Value32> commonData) where T : struct
+        private static T GetFieldValue<T>(int Id, BitReader r, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<int, Value32> commonData) where T : unmanaged
         {
             switch (columnMeta.CompressionType)
             {
@@ -126,7 +126,7 @@ namespace CASCLib
             throw new Exception(string.Format("Unexpected compression type {0}", columnMeta.CompressionType));
         }
 
-        private static T[] GetFieldValueArray<T>(BitReader r, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<int, Value32> commonData, int arraySize) where T : struct
+        private static T[] GetFieldValueArray<T>(BitReader r, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<int, Value32> commonData, int arraySize) where T : unmanaged
         {
             switch (columnMeta.CompressionType)
             {

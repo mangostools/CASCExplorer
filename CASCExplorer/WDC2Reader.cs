@@ -100,7 +100,7 @@ namespace CASCLib
             return (T)value;
         }
 
-        private static T GetFieldValue<T>(int Id, BitReader r, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<int, Value32> commonData) where T : struct
+        private static T GetFieldValue<T>(int Id, BitReader r, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<int, Value32> commonData) where T : unmanaged
         {
             switch (columnMeta.CompressionType)
             {
@@ -111,8 +111,9 @@ namespace CASCLib
                     else
                         return r.ReadValue64(columnMeta.Immediate.BitWidth).GetValue<T>();
                 case CompressionType.Immediate:
-                case CompressionType.SignedImmediate:
                     return r.ReadValue64(columnMeta.Immediate.BitWidth).GetValue<T>();
+                case CompressionType.SignedImmediate:
+                    return r.ReadValue64Signed(columnMeta.Immediate.BitWidth).GetValue<T>();
                 case CompressionType.Common:
                     if (commonData.TryGetValue(Id, out Value32 val))
                         return val.GetValue<T>();
@@ -128,7 +129,7 @@ namespace CASCLib
             throw new Exception(string.Format("Unexpected compression type {0}", columnMeta.CompressionType));
         }
 
-        private static T[] GetFieldValueArray<T>(BitReader r, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<int, Value32> commonData, int arraySize) where T : struct
+        private static T[] GetFieldValueArray<T>(BitReader r, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<int, Value32> commonData, int arraySize) where T : unmanaged
         {
             switch (columnMeta.CompressionType)
             {
@@ -147,13 +148,19 @@ namespace CASCLib
 
                     return arr1;
                 case CompressionType.Immediate:
-                case CompressionType.SignedImmediate:
                     T[] arr2 = new T[arraySize];
 
                     for (int i = 0; i < arr2.Length; i++)
                         arr2[i] = r.ReadValue64(columnMeta.Immediate.BitWidth).GetValue<T>();
 
                     return arr2;
+                case CompressionType.SignedImmediate:
+                    T[] arr4 = new T[arraySize];
+
+                    for (int i = 0; i < arr4.Length; i++)
+                        arr4[i] = r.ReadValue64Signed(columnMeta.Immediate.BitWidth).GetValue<T>();
+
+                    return arr4;
                 case CompressionType.PalletArray:
                     int cardinality = columnMeta.Pallet.Cardinality;
 

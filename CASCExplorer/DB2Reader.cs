@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace CASCLib
@@ -123,12 +124,12 @@ namespace CASCLib
     {
         unsafe fixed byte Value[4];
 
-        public T GetValue<T>() where T : struct
+        public T GetValue<T>() where T : unmanaged
         {
             unsafe
             {
                 fixed (byte* ptr = Value)
-                    return FastStruct<T>.ArrayToStructure(ref ptr[0]);
+                    return *(T*)ptr;
             }
         }
     }
@@ -137,12 +138,12 @@ namespace CASCLib
     {
         unsafe fixed byte Value[8];
 
-        public T GetValue<T>() where T : struct
+        public T GetValue<T>() where T : unmanaged
         {
             unsafe
             {
                 fixed (byte* ptr = Value)
-                    return FastStruct<T>.ArrayToStructure(ref ptr[0]);
+                    return *(T*)ptr;
             }
         }
     }
@@ -224,14 +225,14 @@ namespace CASCLib
 
         public uint ReadUInt32(int numBits)
         {
-            uint result = FastStruct<uint>.ArrayToStructure(ref m_array[m_readOffset + (m_readPos >> 3)]) << (32 - numBits - (m_readPos & 7)) >> (32 - numBits);
+            uint result = Unsafe.ReadUnaligned<uint>(ref m_array[m_readOffset + (m_readPos >> 3)]) << (32 - numBits - (m_readPos & 7)) >> (32 - numBits);
             m_readPos += numBits;
             return result;
         }
 
         public ulong ReadUInt64(int numBits)
         {
-            ulong result = FastStruct<ulong>.ArrayToStructure(ref m_array[m_readOffset + (m_readPos >> 3)]) << (64 - numBits - (m_readPos & 7)) >> (64 - numBits);
+            ulong result = Unsafe.ReadUnaligned<ulong>(ref m_array[m_readOffset + (m_readPos >> 3)]) << (64 - numBits - (m_readPos & 7)) >> (64 - numBits);
             m_readPos += numBits;
             return result;
         }
@@ -250,6 +251,17 @@ namespace CASCLib
             unsafe
             {
                 ulong result = ReadUInt64(numBits);
+                return *(Value64*)&result;
+            }
+        }
+
+        public Value64 ReadValue64Signed(int numBits)
+        {
+            unsafe
+            {
+                ulong result = ReadUInt64(numBits);
+                ulong signedShift = (1UL << (numBits - 1));
+                result = (signedShift ^ result) - signedShift;
                 return *(Value64*)&result;
             }
         }

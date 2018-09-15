@@ -140,7 +140,7 @@ namespace CASCLib
                 {
                     block.CompSize = size - 8;
                     block.DecompSize = size - 8 - 1;
-                    block.Hash = default(MD5Hash);
+                    block.Hash = default;
                 }
 
                 _dataBlocks[i] = block;

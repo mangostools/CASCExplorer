@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace CASCLib
@@ -12,6 +13,12 @@ namespace CASCLib
         {
             byte[] val = reader.ReadBytes(4);
             return val[3] | val[2] << 8 | val[1] << 16 | val[0] << 24;
+        }
+
+        public static long ReadInt40BE(this BinaryReader reader)
+        {
+            byte[] val = reader.ReadBytes(5);
+            return val[4] | val[3] << 8 | val[2] << 16 | val[1] << 24 | val[0] << 32;
         }
 
         public static void Skip(this BinaryReader reader, int bytes)
@@ -27,28 +34,44 @@ namespace CASCLib
 
         public static T Read<T>(this BinaryReader reader) where T : struct
         {
-            byte[] result = reader.ReadBytes(FastStruct<T>.Size);
+            byte[] result = reader.ReadBytes(Unsafe.SizeOf<T>());
 
-            return FastStruct<T>.ArrayToStructure(result);
+            return Unsafe.ReadUnaligned<T>(ref result[0]);
         }
 
         public static T[] ReadArray<T>(this BinaryReader reader) where T : struct
         {
             int numBytes = (int)reader.ReadInt64();
 
-            byte[] result = reader.ReadBytes(numBytes);
+            byte[] source = reader.ReadBytes(numBytes);
 
             reader.BaseStream.Position += (0 - numBytes) & 0x07;
-            return FastStruct<T>.ReadArray(result);
+
+            return source.CopyTo<T>();
         }
 
         public static T[] ReadArray<T>(this BinaryReader reader, int size) where T : struct
         {
-            int numBytes = FastStruct<T>.Size * size;
+            int numBytes = Unsafe.SizeOf<T>() * size;
 
-            byte[] result = reader.ReadBytes(numBytes);
+            byte[] source = reader.ReadBytes(numBytes);
 
-            return FastStruct<T>.ReadArray(result);
+            return source.CopyTo<T>();
+        }
+
+        public static T[] CopyTo<T>(this byte[] src) where T : struct
+        {
+            T[] result = new T[src.Length / Unsafe.SizeOf<T>()];
+
+            if (src.Length > 0)
+            {
+                unsafe
+                {
+                    Unsafe.CopyBlockUnaligned(Unsafe.AsPointer(ref result[0]), Unsafe.AsPointer(ref src[0]), (uint)src.Length);
+                }
+            }
+
+            return result;
         }
 
         public static short ReadInt16BE(this BinaryReader reader)
