@@ -124,7 +124,7 @@ namespace CASCLib
     {
         private uint Value;
 
-        public T GetValue<T>() where T : unmanaged
+        public T As<T>() where T : unmanaged
         {
             return Unsafe.As<uint, T>(ref Value);
         }
@@ -207,36 +207,23 @@ namespace CASCLib
 
         public uint ReadUInt32(int numBits)
         {
-            uint result = Unsafe.ReadUnaligned<uint>(ref m_array[m_readOffset + (m_readPos >> 3)]) << (32 - numBits - (m_readPos & 7)) >> (32 - numBits);
-            m_readPos += numBits;
-            return result;
-        }
-
-        public ulong ReadUInt64(int numBits)
-        {
-            ulong result = Unsafe.ReadUnaligned<ulong>(ref m_array[m_readOffset + (m_readPos >> 3)]) << (64 - numBits - (m_readPos & 7)) >> (64 - numBits);
+            uint result = Unsafe.As<byte, uint>(ref m_array[m_readOffset + (m_readPos >> 3)]) << (32 - numBits - (m_readPos & 7)) >> (32 - numBits);
             m_readPos += numBits;
             return result;
         }
 
         public T Read<T>(int numBits) where T : unmanaged
         {
-            unsafe
-            {
-                ulong result = ReadUInt64(numBits);
-                return Unsafe.As<ulong, T>(ref result);
-            }
+            ulong result = Unsafe.As<byte, ulong>(ref m_array[m_readOffset + (m_readPos >> 3)]) << (64 - numBits - (m_readPos & 7)) >> (64 - numBits);
+            return Unsafe.As<ulong, T>(ref result);
         }
 
         public T ReadSigned<T>(int numBits) where T : unmanaged
         {
-            unsafe
-            {
-                ulong result = ReadUInt64(numBits);
-                ulong signedShift = (1UL << (numBits - 1));
-                result = (signedShift ^ result) - signedShift;
-                return Unsafe.As<ulong, T>(ref result);
-            }
+            ulong result = Unsafe.As<byte, ulong>(ref m_array[m_readOffset + (m_readPos >> 3)]) << (64 - numBits - (m_readPos & 7)) >> (64 - numBits);
+            ulong signedShift = (1UL << (numBits - 1));
+            result = (signedShift ^ result) - signedShift;
+            return Unsafe.As<ulong, T>(ref result);
         }
     }
 }

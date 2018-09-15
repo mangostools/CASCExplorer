@@ -113,13 +113,13 @@ namespace CASCLib
                     return r.Read<T>(columnMeta.Immediate.BitWidth);
                 case CompressionType.Common:
                     if (commonData.TryGetValue(Id, out Value32 val))
-                        return val.GetValue<T>();
+                        return val.As<T>();
                     else
-                        return columnMeta.Common.DefaultValue.GetValue<T>();
+                        return columnMeta.Common.DefaultValue.As<T>();
                 case CompressionType.Pallet:
                     uint palletIndex = r.ReadUInt32(columnMeta.Pallet.BitWidth);
 
-                    T val1 = palletData[palletIndex].GetValue<T>();
+                    T val1 = palletData[palletIndex].As<T>();
 
                     return val1;
             }
@@ -162,7 +162,7 @@ namespace CASCLib
                     T[] arr3 = new T[cardinality];
 
                     for (int i = 0; i < arr3.Length; i++)
-                        arr3[i] = palletData[i + cardinality * (int)palletArrayIndex].GetValue<T>();
+                        arr3[i] = palletData[i + cardinality * (int)palletArrayIndex].As<T>();
 
                     return arr3;
             }
