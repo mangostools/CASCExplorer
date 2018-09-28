@@ -47,6 +47,9 @@ namespace CASCLib
                 if (File.Exists(Path.Combine(path, "WowT.exe")))
                     return CASCGameType.WoW;
 
+                if (File.Exists(Path.Combine(path, "_ptr_", "WowT.exe")))
+                    return CASCGameType.WoW;
+
                 if (File.Exists(Path.Combine(path, "WowB.exe")))
                     return CASCGameType.WoW;
 
