@@ -1,11 +1,14 @@
 ﻿using CASCExplorer.Properties;
+using CASCExplorer.ViewPlugin;
 using CASCLib;
-using SereniaBLPLib;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -31,6 +34,15 @@ namespace CASCExplorer
             NumberGroupSeparator = " "
         };
 
+        private AggregateCatalog m_catalog;
+
+        [ImportMany(AllowRecomposition = true)]
+        private List<Lazy<IPreview, IExtensions>> ViewPlugins { get; set; }
+
+        private Control m_currentControl;
+
+        public Panel ViewPanel { get; set; }
+
         public event OnStorageChangedDelegate OnStorageChanged;
         public event OnCleanupDelegate OnCleanup;
 
@@ -41,6 +53,28 @@ namespace CASCExplorer
         public CASCFolder CurrentFolder => _currentFolder;
 
         public List<ICASCEntry> DisplayedEntries => _displayedEntries;
+
+        internal CASCViewHelper()
+        {
+            ComposePlugins();
+        }
+
+        private void ComposePlugins()
+        {
+            m_catalog = new AggregateCatalog();
+            m_catalog.Catalogs.Add(new AssemblyCatalog(Assembly.GetExecutingAssembly()));
+            m_catalog.Catalogs.Add(new DirectoryCatalog(Application.StartupPath));
+
+            try
+            {
+                var container = new CompositionContainer(m_catalog);
+                container.ComposeParts(this);
+            }
+            catch (CompositionException ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
 
         public bool AnalyzeSoundFiles { get; set; } = true;
         public bool AddFileDataIdToSoundFiles { get; set; } = true;
@@ -153,6 +187,7 @@ namespace CASCExplorer
                             foreach (var row in sk)
                             {
                                 string name = skn.GetRow(row.Key).GetField<string>(0).Replace(':', '_');
+                                //string name = row.Value.GetField<string>(0).Replace(':', '_');
 
                                 int type = row.Value.GetField<byte>(6);
 
@@ -263,7 +298,7 @@ namespace CASCExplorer
             }
 
             scanForm.Reset();
-            scanForm.ShowDialog();
+            scanForm.Show();
         }
 
         public void UpdateListView(CASCFolder baseEntry, NoFlickerListView fileList, string filter)
@@ -395,9 +430,32 @@ namespace CASCExplorer
             MessageBox.Show(string.Format(sizeNumberFmt, "{0:N} bytes", size));
         }
 
+        private void ExecPlugin(IPreview plugin, ICASCEntry file)
+        {
+            try
+            {
+                using (var stream = _casc.OpenFile(file.Hash))
+                {
+                    // todo: use Task
+                    var control = plugin.Show(stream, file.Name);
+                    if (m_currentControl != control)
+                    {
+                        ViewPanel.Controls.Clear();
+                        ViewPanel.Controls.Add(control);
+                        control.Dock = DockStyle.Fill;
+                        m_currentControl = control;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Plugin Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         public void PreviewFile(NoFlickerListView fileList)
         {
-            if (_currentFolder == null)
+            if (_currentFolder == null || ViewPanel == null || ViewPlugins == null)
                 return;
 
             if (!fileList.HasSingleSelection)
@@ -405,73 +463,33 @@ namespace CASCExplorer
 
             var file = _displayedEntries[fileList.SelectedIndex] as CASCFile;
 
+            if (file == null)
+            {
+                ViewPanel?.Controls.Clear();
+                m_currentControl = null;
+                return;
+            }
+
             var extension = Path.GetExtension(file.Name);
 
-            if (extension != null)
+            foreach (var plugin in ViewPlugins)
             {
-                switch (extension.ToLower())
+                if (plugin.Metadata.Extensions?.Contains(extension) == true)
                 {
-                    case ".blp":
-                        {
-                            PreviewBlp(file);
-                            break;
-                        }
-                    case ".txt":
-                    case ".ini":
-                    case ".wtf":
-                    case ".lua":
-                    case ".toc":
-                    case ".xml":
-                    case ".htm":
-                    case ".html":
-                    case ".lst":
-                        {
-                            PreviewText(file);
-                            break;
-                        }
-                    //case ".wav":
-                    //case ".ogg":
-                    //    {
-                    //        PreviewSound(file);
-                    //        break;
-                    //    }
-                    default:
-                        {
-                            MessageBox.Show(string.Format("Preview of {0} is not supported yet", extension), "Not supported file");
-                            break;
-                        }
+                    ExecPlugin(plugin.Value, file);
+                    return;
                 }
             }
-        }
 
-        private void PreviewText(CASCFile file)
-        {
-            using (var stream = _casc.OpenFile(file.Hash))
+            var defPlugin = ViewPlugins.Where(p => p.Metadata.Extensions == null).FirstOrDefault();
+            if (defPlugin != null)
             {
-                var text = new StreamReader(stream).ReadToEnd();
-                var form = new Form { FormBorderStyle = FormBorderStyle.SizableToolWindow, StartPosition = FormStartPosition.CenterParent };
-                form.Controls.Add(new TextBox
-                {
-                    Multiline = true,
-                    ReadOnly = true,
-                    Dock = DockStyle.Fill,
-                    Text = text,
-                    ScrollBars = ScrollBars.Both
-                });
-                form.Show();
+                ExecPlugin(defPlugin.Value, file);
+                return;
             }
-        }
 
-        private void PreviewBlp(CASCFile file)
-        {
-            using (var stream = _casc.OpenFile(file.Hash))
-            {
-                var blp = new BlpFile(stream);
-                var bitmap = blp.GetBitmap(0);
-                var form = new ImagePreviewForm(bitmap);
-                form.Text += " - " + file.Name;
-                form.Show();
-            }
+            m_currentControl = null;
+            ViewPanel.Controls.Clear();
         }
 
         public void CreateListViewItem(RetrieveVirtualItemEventArgs e)
@@ -564,6 +582,9 @@ namespace CASCExplorer
             _casc?.Clear();
             _casc = null;
 
+            ViewPanel?.Controls.Clear();
+            m_currentControl = null;
+
             OnCleanup?.Invoke();
         }
 
@@ -612,7 +633,7 @@ namespace CASCExplorer
                 foreach (var file in CASCFile.Files.OrderBy(f => f.Value.FullName, StringComparer.OrdinalIgnoreCase))
                 {
                     if (CASC.FileExists(file.Key) && (wowRoot == null || !wowRoot.IsUnknownFile(file.Key)))
-                        sw.WriteLine(file.Value.FullName);
+                        sw.WriteLine(file.Value);
                 }
 
                 //var wr = CASC.Root as WowRootHandler;
@@ -665,6 +686,8 @@ namespace CASCExplorer
                 {
                     sw.WriteLine(dir);
                 }
+
+                Logger.WriteLine("WowRootHandler: loaded {0} valid file names", CASCFile.Files.Count);
             }
         }
 
