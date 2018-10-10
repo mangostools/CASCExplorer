@@ -168,9 +168,9 @@ namespace CASCExplorer
                         using (Stream skeStream = _casc.OpenFile("DBFilesClient\\SoundKitEntry.db2"))
                         using (Stream sknStream = _casc.OpenFile("DBFilesClient\\SoundKitName.db2"))
                         {
-                            WDC2Reader sk = new WDC2Reader(skStream);
-                            WDC2Reader ske = new WDC2Reader(skeStream);
-                            WDC2Reader skn = new WDC2Reader(sknStream);
+                            WDC3Reader sk = new WDC3Reader(skStream);
+                            WDC3Reader ske = new WDC3Reader(skeStream);
+                            WDC3Reader skn = new WDC3Reader(sknStream);
 
                             Dictionary<int, List<int>> lookup = new Dictionary<int, List<int>>();
 

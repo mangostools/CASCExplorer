@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CASCLib
 {
-    public class WDC2Row : IDB2Row
+    public class WDC3Row : IDB2Row
     {
         private BitReader m_data;
         private DB2Reader m_reader;
@@ -20,7 +20,7 @@ namespace CASCLib
         private Dictionary<int, Value32>[] m_commonData;
         private ReferenceEntry? m_refData;
 
-        public WDC2Row(DB2Reader reader, BitReader data, int recordsOffset, int id, ReferenceEntry? refData)
+        public WDC3Row(DB2Reader reader, BitReader data, int recordsOffset, int id, ReferenceEntry? refData)
         {
             m_reader = reader;
             m_data = data;
@@ -185,14 +185,14 @@ namespace CASCLib
         }
     }
 
-    public class WDC2Reader : DB2Reader
+    public class WDC3Reader : DB2Reader
     {
-        private const int HeaderSize = 72 + 1 * 36;
-        private const uint WDC2FmtSig = 0x32434457; // WDC2
+        private const int HeaderSize = 72 + 1 * 40;
+        private const uint WDC2FmtSig = 0x33434457; // WDC3
 
-        public WDC2Reader(string dbcFile) : this(new FileStream(dbcFile, FileMode.Open)) { }
+        public WDC3Reader(string dbcFile) : this(new FileStream(dbcFile, FileMode.Open)) { }
 
-        public WDC2Reader(Stream stream)
+        public WDC3Reader(Stream stream)
         {
             using (var reader = new BinaryReader(stream, Encoding.UTF8))
             {
@@ -226,7 +226,7 @@ namespace CASCLib
                 if (sectionsCount > 1)
                     throw new Exception("sectionsCount > 1");
 
-                SectionHeader_WDC2[] sections = reader.ReadArray<SectionHeader_WDC2>(sectionsCount);
+                SectionHeader_WDC3[] sections = reader.ReadArray<SectionHeader_WDC3>(sectionsCount);
 
                 // field meta data
                 m_meta = reader.ReadArray<FieldMetaData>(FieldsCount);
@@ -305,7 +305,7 @@ namespace CASCLib
                     // duplicate rows data
                     Dictionary<int, int> copyData = new Dictionary<int, int>();
 
-                    for (int i = 0; i < sections[sectionIndex].CopyTableSize / 8; i++)
+                    for (int i = 0; i < sections[sectionIndex].CopyRecordsCount; i++)
                         copyData[reader.ReadInt32()] = reader.ReadInt32();
 
                     // reference data
@@ -330,7 +330,7 @@ namespace CASCLib
                         bitReader.Position = 0;
                         bitReader.Offset = i * RecordSize;
 
-                        IDB2Row rec = new WDC2Row(this, bitReader, sections[sectionIndex].FileOffset, sections[sectionIndex].IndexDataSize != 0 ? m_indexData[i] : -1, refData?.Entries[i]);
+                        IDB2Row rec = new WDC3Row(this, bitReader, sections[sectionIndex].FileOffset, sections[sectionIndex].IndexDataSize != 0 ? m_indexData[i] : -1, refData?.Entries[i]);
 
                         if (sections[sectionIndex].IndexDataSize != 0)
                             _Records.Add(m_indexData[i], rec);
