@@ -2,7 +2,7 @@
 
 namespace CASCLib
 {
-    class KeyService
+    public class KeyService
     {
         private static Dictionary<ulong, byte[]> keys = new Dictionary<ulong, byte[]>()
         {
