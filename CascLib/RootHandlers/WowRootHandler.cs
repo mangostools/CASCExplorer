@@ -85,7 +85,7 @@ namespace CASCLib
                 if (localeFlags == LocaleFlags.None)
                     throw new Exception("block.LocaleFlags == LocaleFlags.None");
 
-                if (contentFlags != ContentFlags.None && (contentFlags & (ContentFlags.F00000008 | ContentFlags.F00000010 | ContentFlags.LowViolence | ContentFlags.NoCompression | ContentFlags.F20000000)) == 0)
+                if (contentFlags != ContentFlags.None && (contentFlags & (ContentFlags.F00000001 | ContentFlags.F00000008 | ContentFlags.F00000010 | ContentFlags.LowViolence | ContentFlags.NoCompression | ContentFlags.F20000000)) == 0)
                     throw new Exception("block.ContentFlags != ContentFlags.None");
 
                 RootEntry[] entries = new RootEntry[count];
@@ -255,7 +255,7 @@ namespace CASCLib
 
         public override void LoadListFile(string path, BackgroundWorkerEx worker = null)
         {
-            CASCFile.Files.Clear();
+            //CASCFile.Files.Clear();
 
             if (LoadPreHashedListFile("listfile.bin", path, worker))
                 return;

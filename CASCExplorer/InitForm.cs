@@ -75,7 +75,7 @@ namespace CASCExplorer
 
             using (var s = casc.OpenFile("DBFilesClient\\FileDataComplete.db2"))
             {
-                WDB5Reader fd = new WDB5Reader(s);
+                WDC1Reader fd = new WDC1Reader(s);
 
                 Jenkins96 hasher = new Jenkins96();
 
