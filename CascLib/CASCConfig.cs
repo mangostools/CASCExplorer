@@ -139,12 +139,16 @@ namespace CASCLib
             config.Region = region;
             config.Product = product;
 
-            using (var cdnsStream = CDNIndexHandler.OpenFileDirect(string.Format("http://us.patch.battle.net:1119/{0}/cdns", product)))
+            using (var ribbit = new RibbitClient("us"))
+            using (var cdnsStream = ribbit.GetAsStream($"v1/products/{product}/cdns"))
+            //using (var cdnsStream = CDNIndexHandler.OpenFileDirect(string.Format("http://us.patch.battle.net:1119/{0}/cdns", product)))
             {
                 config._CDNData = VerBarConfig.ReadVerBarConfig(cdnsStream);
             }
 
-            using (var versionsStream = CDNIndexHandler.OpenFileDirect(string.Format("http://us.patch.battle.net:1119/{0}/versions", product)))
+            using (var ribbit = new RibbitClient("us"))
+            using (var versionsStream = ribbit.GetAsStream($"v1/products/{product}/versions"))
+            //using (var versionsStream = CDNIndexHandler.OpenFileDirect(string.Format("http://us.patch.battle.net:1119/{0}/versions", product)))
             {
                 config._VersionsData = VerBarConfig.ReadVerBarConfig(versionsStream);
             }
@@ -161,7 +165,7 @@ namespace CASCLib
             config.GameType = CASCGame.DetectOnlineGame(product);
 
             string cdnKey = config._VersionsData[config._versionsIndex]["CDNConfig"].ToLower();
-            //string cdnKey = "1964f5dfcb945c1b31acabedeaf13d09";
+            //string cdnKey = "da4896ce91922122bc0a2371ee114423";
             using (Stream stream = CDNIndexHandler.OpenConfigFileDirect(config, cdnKey))
             {
                 config._CDNConfig = KeyValueConfig.ReadKeyValueConfig(stream);
@@ -201,7 +205,7 @@ namespace CASCLib
             }
 
             string buildKey = config._VersionsData[config._versionsIndex]["BuildConfig"].ToLower();
-            //string buildKey = "e8f3d86ab313c4bdf5cf4f5daea32477";
+            //string buildKey = "3b0517b51edbe0b96f6ac5ea7eaaed38";
             using (Stream stream = CDNIndexHandler.OpenConfigFileDirect(config, buildKey))
             {
                 var cfg = KeyValueConfig.ReadKeyValueConfig(stream);

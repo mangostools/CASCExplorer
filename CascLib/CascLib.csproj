@@ -37,6 +37,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net.Http" />
+    <PackageReference Include="MimeKitLite" Version="2.0.6" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.1" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -45,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RibbitClient.cs" />
     <Compile Include="RootHandlers\Destiny2RootHandler.cs" />
     <Compile Include="ArmadilloCrypt.cs" />
     <Compile Include="RootHandlers\WC3RootHandler.cs" />

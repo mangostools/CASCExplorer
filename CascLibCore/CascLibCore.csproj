@@ -38,6 +38,7 @@
     <Compile Include="..\CascLib\MD5HashComparer.cs" Link="MD5HashComparer.cs" />
     <Compile Include="..\CascLib\MultiDictionary.cs" Link="MultiDictionary.cs" />
     <Compile Include="..\CascLib\PerfCounter.cs" Link="PerfCounter.cs" />
+    <Compile Include="..\CascLib\RibbitClient.cs" Link="RibbitClient.cs" />
     <Compile Include="..\CascLib\RootHandlerBase.cs" Link="RootHandlerBase.cs" />
     <Compile Include="..\CascLib\RootHandlers\AgentRootHandler.cs" Link="RootHandlers\AgentRootHandler.cs" />
     <Compile Include="..\CascLib\RootHandlers\D3RootHandler.cs" Link="RootHandlers\D3RootHandler.cs" />
@@ -54,6 +55,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.DotNet.Analyzers.Compatibility" Version="0.2.12-alpha" />
+    <PackageReference Include="MimeKitLite" Version="2.0.6" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.1" />
   </ItemGroup>

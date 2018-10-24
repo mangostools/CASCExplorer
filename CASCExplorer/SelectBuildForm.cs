@@ -11,15 +11,20 @@ namespace CASCExplorer
         {
             InitializeComponent();
 
-            if (config.Builds.Count > 1)
+            foreach (var cfg in config.Builds)
             {
-                foreach (var cfg in config.Builds)
-                {
-                    listBox1.Items.Add(cfg["build-name"][0]);
-                }
+                listBox1.Items.Add(cfg["build-name"][0]);
             }
-            else
-                listBox1.Items.Add(config.BuildName);
+
+            //if (config.Builds.Count > 1)
+            //{
+            //    foreach (var cfg in config.Builds)
+            //    {
+            //        listBox1.Items.Add(cfg["build-name"][0]);
+            //    }
+            //}
+            //else
+            //    listBox1.Items.Add(config.BuildName);
 
             listBox1.SelectedIndex = 0;
         }
