@@ -260,44 +260,48 @@ namespace CASCLib
                     }
                 }
 
+                bool isSparse = (flags & 0x1) != 0;
+                bool hasIndex = (flags & 0x4) != 0;
+
                 for (int sectionIndex = 0; sectionIndex < sectionsCount; sectionIndex++)
                 {
+                    if (sections[sectionIndex].TactKeyLookup != 0)
+                    {
+                        //Console.WriteLine("Detected db2 with encrypted section! HasKey {0}", CASC.HasKey(Sections[sectionIndex].TactKeyLookup));
+                        continue;
+                    }
+
                     reader.BaseStream.Position = sections[sectionIndex].FileOffset;
 
-                    if ((flags & 0x1) == 0)
+                    if (isSparse)
+                    {
+                        // sparse data with inlined strings
+                        recordsData = reader.ReadBytes(sections[sectionIndex].SparseDataEndOffset - sections[sectionIndex].FileOffset);
+
+                        if (reader.BaseStream.Position != sections[sectionIndex].SparseDataEndOffset)
+                            throw new Exception("reader.BaseStream.Position != sections[sectionIndex].SparseDataEndOffset");
+                    }
+                    else
                     {
                         // records data
                         recordsData = reader.ReadBytes(sections[sectionIndex].NumRecords * RecordSize);
 
-                        Array.Resize(ref recordsData, recordsData.Length + 8); // pad with extra zeros so we don't crash when reading
-
                         // string data
                         m_stringsTable = new Dictionary<long, string>();
+
+                        long stringDataOffset = (RecordsCount - sections[sectionIndex].NumRecords) * RecordSize;
 
                         for (int i = 0; i < sections[sectionIndex].StringTableSize;)
                         {
                             long oldPos = reader.BaseStream.Position;
 
-                            m_stringsTable[oldPos] = reader.ReadCString();
+                            m_stringsTable[oldPos + stringDataOffset] = reader.ReadCString();
 
                             i += (int)(reader.BaseStream.Position - oldPos);
                         }
                     }
-                    else
-                    {
-                        // sparse data with inlined strings
-                        sparseData = reader.ReadBytes(sections[sectionIndex].SparseTableOffset - sections[sectionIndex].FileOffset);
 
-                        if (reader.BaseStream.Position != sections[sectionIndex].SparseTableOffset)
-                            throw new Exception("reader.BaseStream.Position != sections[sectionIndex].SparseTableOffset");
-
-                        sparseEntries = reader.ReadArray<SparseEntry>(MaxIndex - MinIndex + 1);
-
-                        if (sections[sectionIndex].SparseTableOffset != 0)
-                            throw new Exception("Sparse Table NYI!");
-                        else
-                            throw new Exception("Sparse Table with zero offset?");
-                    }
+                    Array.Resize(ref recordsData, recordsData.Length + 8); // pad with extra zeros so we don't crash when reading
 
                     // index data
                     m_indexData = reader.ReadArray<int>(sections[sectionIndex].IndexDataSize / 4);
@@ -305,8 +309,11 @@ namespace CASCLib
                     // duplicate rows data
                     Dictionary<int, int> copyData = new Dictionary<int, int>();
 
-                    for (int i = 0; i < sections[sectionIndex].CopyRecordsCount; i++)
+                    for (int i = 0; i < sections[sectionIndex].NumCopyRecords; i++)
                         copyData[reader.ReadInt32()] = reader.ReadInt32();
+
+                    if (sections[sectionIndex].NumSparseRecords > 0)
+                        sparseEntries = reader.ReadArray<SparseEntry>(sections[sectionIndex].NumSparseRecords);
 
                     // reference data
                     ReferenceData refData = null;
@@ -323,12 +330,30 @@ namespace CASCLib
                         refData.Entries = reader.ReadArray<ReferenceEntry>(refData.NumRecords);
                     }
 
+                    if (sections[sectionIndex].NumSparseRecords > 0)
+                    {
+                        // TODO: use this shit
+                        int[] sparseIndexData = reader.ReadArray<int>(sections[sectionIndex].NumSparseRecords);
+
+                        if (m_indexData.Length != sparseIndexData.Length)
+                            throw new Exception("m_indexData.Length != sparseIndexData.Length");
+
+                        m_indexData = sparseIndexData;
+                    }
+
                     BitReader bitReader = new BitReader(recordsData);
+
+                    if (sections[sectionIndex].NumSparseRecords > 0 && sections[sectionIndex].NumRecords != sections[sectionIndex].NumSparseRecords)
+                        throw new Exception("sections[sectionIndex].NumSparseRecords > 0 && sections[sectionIndex].NumRecords != sections[sectionIndex].NumSparseRecords");
 
                     for (int i = 0; i < RecordsCount; ++i)
                     {
                         bitReader.Position = 0;
-                        bitReader.Offset = i * RecordSize;
+
+                        if (isSparse)
+                            bitReader.Offset = sparseEntries[i].Offset - sections[sectionIndex].FileOffset;
+                        else
+                            bitReader.Offset = i * RecordSize;
 
                         IDB2Row rec = new WDC3Row(this, bitReader, sections[sectionIndex].FileOffset, sections[sectionIndex].IndexDataSize != 0 ? m_indexData[i] : -1, refData?.Entries[i]);
 
