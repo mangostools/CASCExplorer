@@ -317,10 +317,7 @@ namespace CASCLib
 
                         IDB2Row rec = new WDC3Row(this, bitReader, sections[sectionIndex].FileOffset, hasIndex ? (isIndexEmpty ? i : indexData[i]) : -1, hasRef ? refId : -1, isSparse, stringsTable);
 
-                        if (hasIndex)
-                            _Records.Add(indexData[i], rec);
-                        else
-                            _Records.Add(rec.Id, rec);
+                        _Records.Add(rec.Id, rec);
 
                         if (i % 1000 == 0)
                             Console.Write("\r{0} records read", i);
