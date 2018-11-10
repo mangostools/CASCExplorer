@@ -272,7 +272,11 @@ namespace CASCLib
                         };
 
                         ReferenceEntry[] entries = reader.ReadArray<ReferenceEntry>(refData.NumRecords);
-                        refData.Entries = entries.ToDictionary(e => e.Index, e => e.Id);
+
+                        refData.Entries = new Dictionary<int, int>();
+
+                        for (int i = 0; i < entries.Length; i++)
+                            refData.Entries[entries[i].Index] = entries[i].Id;
                     }
                     else
                     {
