@@ -246,9 +246,9 @@ namespace CASCLib
         private ColumnMetaData[] m_columnMeta;
         private Value32[][] m_palletData;
         private Dictionary<int, Value32>[] m_commonData;
-        private ReferenceEntry? m_refData;
+        private ReferenceEntry m_refData;
 
-        public WDC3Row(DB2Reader reader, BitReader data, int recordsOffset, int id, ReferenceEntry? refData, bool isSparse)
+        public WDC3Row(DB2Reader reader, BitReader data, int recordsOffset, int id, ReferenceEntry refData, bool isSparse)
         {
             m_reader = reader;
             m_data = data;
@@ -306,7 +306,7 @@ namespace CASCLib
             m_data.Position = 0;
             m_data.Offset = m_dataOffset;
             // FIXME: sparse!!
-            row.Read(m_data, m_recordsOffset, m_reader.StringTable, m_fieldMeta, m_columnMeta, m_palletData, m_commonData, m_refData.HasValue ? m_refData.Value : default, m_idRead ? -1 : Id, m_isSparse);
+            row.Read(m_data, m_recordsOffset, m_reader.StringTable, m_fieldMeta, m_columnMeta, m_palletData, m_commonData, m_refData, m_idRead ? -1 : Id, m_isSparse);
             return row;
         }
 
@@ -316,7 +316,7 @@ namespace CASCLib
 
             if (fieldIndex >= m_reader.Meta.Length)
             {
-                value = m_refData?.Id ?? 0;
+                value = m_refData.Id;
                 return (T)value;
             }
 
@@ -599,7 +599,7 @@ namespace CASCLib
                         IDB2Row rec;
 
                         if (refData != null && i < refData.Entries.Length)
-                            rec = new WDC3Row(this, bitReader, sections[sectionIndex].FileOffset, sections[sectionIndex].IndexDataSize != 0 ? m_indexData[i] : -1, refData?.Entries[i], isSparse);
+                            rec = new WDC3Row(this, bitReader, sections[sectionIndex].FileOffset, sections[sectionIndex].IndexDataSize != 0 ? m_indexData[i] : -1, refData.Entries[i], isSparse);
                         else
                             rec = new WDC3Row(this, bitReader, sections[sectionIndex].FileOffset, sections[sectionIndex].IndexDataSize != 0 ? m_indexData[i] : -1, default, isSparse);
 
