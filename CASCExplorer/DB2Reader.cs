@@ -190,17 +190,7 @@ namespace CASCLib
         protected Dictionary<int, Value32>[] m_commonData;
         public Dictionary<int, Value32>[] CommonData => m_commonData;
 
-        public Dictionary<long, string> StringTable => m_stringsTable;
-
         protected Dictionary<int, IDB2Row> _Records = new Dictionary<int, IDB2Row>();
-
-        // normal records data
-        protected byte[] recordsData;
-        protected Dictionary<long, string> m_stringsTable;
-
-        // sparse records data
-        protected byte[] sparseData;
-        protected SparseEntry[] sparseEntries;
 
         public bool HasRow(int id)
         {

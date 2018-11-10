@@ -15,16 +15,18 @@ namespace CASCLib
         private bool m_isSparse;
         private bool m_idRead;
         private int m_refId;
+        private Dictionary<long, string> m_stringsTable;
 
         public int Id { get; set; }
 
-        public WDC3Row(DB2Reader reader, BitReader data, int recordsOffset, int id, int refId, bool isSparse)
+        public WDC3Row(DB2Reader reader, BitReader data, int recordsOffset, int id, int refId, bool isSparse, Dictionary<long, string> stringsTable)
         {
             m_reader = reader;
             m_data = data;
             m_recordsOffset = recordsOffset;
             m_refId = refId;
             m_isSparse = isSparse;
+            m_stringsTable = stringsTable;
 
             m_dataOffset = m_data.Offset;
 
@@ -84,14 +86,14 @@ namespace CASCLib
             if (arrayIndex >= 0)
             {
                 if (arrayReaders.TryGetValue(typeof(T), out var reader))
-                    value = reader(m_data, m_reader.Meta[fieldIndex], m_reader.ColumnMeta[fieldIndex], m_reader.PalletData[fieldIndex], m_reader.CommonData[fieldIndex], m_reader.StringTable, arrayIndex);
+                    value = reader(m_data, m_reader.Meta[fieldIndex], m_reader.ColumnMeta[fieldIndex], m_reader.PalletData[fieldIndex], m_reader.CommonData[fieldIndex], m_stringsTable, arrayIndex);
                 else
                     throw new Exception("Unhandled array type: " + typeof(T).Name);
             }
             else
             {
                 if (simpleReaders.TryGetValue(typeof(T), out var reader))
-                    value = reader(Id, m_data, m_recordsOffset, m_reader.Meta[fieldIndex], m_reader.ColumnMeta[fieldIndex], m_reader.PalletData[fieldIndex], m_reader.CommonData[fieldIndex], m_reader.StringTable);
+                    value = reader(Id, m_data, m_recordsOffset, m_reader.Meta[fieldIndex], m_reader.ColumnMeta[fieldIndex], m_reader.PalletData[fieldIndex], m_reader.CommonData[fieldIndex], m_stringsTable);
                 else
                     throw new Exception("Unhandled field type: " + typeof(T).Name);
             }
@@ -109,7 +111,7 @@ namespace CASCLib
             T row = new T();
             m_data.Position = 0;
             m_data.Offset = m_dataOffset;
-            row.Read(m_data, m_recordsOffset, m_reader.StringTable, m_reader.Meta, m_reader.ColumnMeta, m_reader.PalletData, m_reader.CommonData, m_refId, m_idRead ? -1 : Id, m_isSparse);
+            row.Read(m_data, m_recordsOffset, m_stringsTable, m_reader.Meta, m_reader.ColumnMeta, m_reader.PalletData, m_reader.CommonData, m_refId, m_idRead ? -1 : Id, m_isSparse);
             return row;
         }
     }
@@ -202,6 +204,10 @@ namespace CASCLib
 
                     reader.BaseStream.Position = sections[sectionIndex].FileOffset;
 
+                    byte[] recordsData;
+                    Dictionary<long, string> stringsTable = null;
+                    SparseEntry[] sparseEntries = null;
+
                     if (isSparse)
                     {
                         // sparse data with inlined strings
@@ -216,7 +222,7 @@ namespace CASCLib
                         recordsData = reader.ReadBytes(sections[sectionIndex].NumRecords * RecordSize);
 
                         // string data
-                        m_stringsTable = new Dictionary<long, string>();
+                        stringsTable = new Dictionary<long, string>();
 
                         long stringDataOffset = (RecordsCount - sections[sectionIndex].NumRecords) * RecordSize;
 
@@ -224,7 +230,7 @@ namespace CASCLib
                         {
                             long oldPos = reader.BaseStream.Position;
 
-                            m_stringsTable[oldPos + stringDataOffset] = reader.ReadCString();
+                            stringsTable[oldPos + stringDataOffset] = reader.ReadCString();
 
                             i += (int)(reader.BaseStream.Position - oldPos);
                         }
@@ -287,7 +293,7 @@ namespace CASCLib
 
                         bool hasRef = refData.Entries.TryGetValue(i, out int refId);
 
-                        IDB2Row rec = new WDC3Row(this, bitReader, sections[sectionIndex].FileOffset, sections[sectionIndex].IndexDataSize != 0 ? indexData[i] : -1, hasRef ? refId : -1, isSparse);
+                        IDB2Row rec = new WDC3Row(this, bitReader, sections[sectionIndex].FileOffset, sections[sectionIndex].IndexDataSize != 0 ? indexData[i] : -1, hasRef ? refId : -1, isSparse, stringsTable);
 
                         if (sections[sectionIndex].IndexDataSize != 0)
                             _Records.Add(indexData[i], rec);

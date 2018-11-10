@@ -10,15 +10,17 @@ namespace CASCLib
     {
         private byte[] m_data;
         private WDB5Reader m_reader;
+        private Dictionary<long, string> m_stringsTable;
 
         public int Id { get; set; }
 
         public byte[] Data => m_data;
 
-        public DB5Row(WDB5Reader reader, byte[] data)
+        public DB5Row(WDB5Reader reader, byte[] data, Dictionary<long, string> stringsTable)
         {
             m_reader = reader;
             m_data = data;
+            m_stringsTable = stringsTable;
         }
 
         public T GetField<T>(int field, int arrayIndex = 0)
@@ -82,7 +84,7 @@ namespace CASCLib
                     byte[] b5 = new byte[4];
                     Array.Copy(m_data, meta.Offset + bytesCount * arrayIndex, b5, 0, bytesCount);
                     int start = BitConverter.ToInt32(b5, 0);
-                    value = m_reader.StringTable[start];
+                    value = m_stringsTable[start];
                     break;
                 case TypeCode.Single:
                     if (meta.Bits != 0x00)
@@ -158,20 +160,20 @@ namespace CASCLib
                     };
                 }
 
+                Dictionary<long, string> stringsTable = new Dictionary<long, string>();
+
                 DB5Row[] m_rows = new DB5Row[RecordsCount];
 
                 for (int i = 0; i < RecordsCount; i++)
                 {
-                    m_rows[i] = new DB5Row(this, reader.ReadBytes(RecordSize));
+                    m_rows[i] = new DB5Row(this, reader.ReadBytes(RecordSize), stringsTable);
                 }
-
-                m_stringsTable = new Dictionary<long, string>();
 
                 for (int i = 0; i < StringTableSize;)
                 {
                     long oldPos = reader.BaseStream.Position;
 
-                    m_stringsTable[i] = reader.ReadCString();
+                    stringsTable[i] = reader.ReadCString();
 
                     i += (int)(reader.BaseStream.Position - oldPos);
                 }

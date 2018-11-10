@@ -10,6 +10,7 @@ namespace CASCLib
     {
         private byte[] m_data;
         private WDB6Reader m_reader;
+        private Dictionary<long, string> m_stringTable;
 
         public int Id { get; set; }
 
@@ -19,10 +20,11 @@ namespace CASCLib
             set => m_data = value;
         }
 
-        public DB6Row(WDB6Reader reader, byte[] data)
+        public DB6Row(WDB6Reader reader, byte[] data, Dictionary<long, string> stringTable)
         {
             m_reader = reader;
             m_data = data;
+            m_stringTable = stringTable;
         }
 
         public T GetField<T>(int field, int arrayIndex = 0)
@@ -86,7 +88,7 @@ namespace CASCLib
                     byte[] b5 = new byte[4];
                     Array.Copy(m_data, meta.Offset + bytesCount * arrayIndex, b5, 0, bytesCount);
                     int start = BitConverter.ToInt32(b5, 0);
-                    value = m_reader.StringTable[start];
+                    value = m_stringTable[start];
                     break;
                 case TypeCode.Single:
                     if (meta.Bits != 0x00)
@@ -165,14 +167,14 @@ namespace CASCLib
                     };
                 }
 
+                Dictionary<long, string> m_stringsTable = new Dictionary<long, string>();
+
                 DB6Row[] m_rows = new DB6Row[RecordsCount];
 
                 for (int i = 0; i < RecordsCount; i++)
                 {
-                    m_rows[i] = new DB6Row(this, reader.ReadBytes(RecordSize));
+                    m_rows[i] = new DB6Row(this, reader.ReadBytes(RecordSize), m_stringsTable);
                 }
-
-                m_stringsTable = new Dictionary<long, string>();
 
                 for (int i = 0; i < StringTableSize;)
                 {
