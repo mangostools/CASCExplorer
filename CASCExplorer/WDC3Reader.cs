@@ -250,6 +250,8 @@ namespace CASCLib
                     // index data
                     int[] indexData = reader.ReadArray<int>(sections[sectionIndex].IndexDataSize / 4);
 
+                    bool isIndexEmpty = hasIndex && indexData.Count(i => i == 0) == sections[sectionIndex].NumRecords;
+
                     // duplicate rows data
                     Dictionary<int, int> copyData = new Dictionary<int, int>();
 
@@ -313,7 +315,7 @@ namespace CASCLib
 
                         bool hasRef = refData.Entries.TryGetValue(i, out int refId);
 
-                        IDB2Row rec = new WDC3Row(this, bitReader, sections[sectionIndex].FileOffset, hasIndex ? indexData[i] : -1, hasRef ? refId : -1, isSparse, stringsTable);
+                        IDB2Row rec = new WDC3Row(this, bitReader, sections[sectionIndex].FileOffset, hasIndex ? (isIndexEmpty ? i : indexData[i]) : -1, hasRef ? refId : -1, isSparse, stringsTable);
 
                         if (hasIndex)
                             _Records.Add(indexData[i], rec);
