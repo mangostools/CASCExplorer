@@ -63,15 +63,6 @@ namespace CASCLib
             [typeof(string)] = (data, fieldMeta, columnMeta, palletData, commonData, stringTable, arrayIndex) => { int strOfs = FieldReader.GetFieldValueArray<int>(data, fieldMeta, columnMeta, palletData, commonData, arrayIndex + 1)[arrayIndex]; return stringTable[strOfs]; },
         };
 
-        public T As<T>() where T : ClientDBRow, new()
-        {
-            T row = new T();
-            m_data.Position = 0;
-            m_data.Offset = m_dataOffset;
-            row.Read(m_data, m_recordsOffset, m_reader.StringTable, m_reader.Meta, m_reader.ColumnMeta, m_reader.PalletData, m_reader.CommonData, m_reader.ReferenceData, m_idRead ? -1 : Id, m_isSparse);
-            return row;
-        }
-
         public T GetField<T>(int fieldIndex, int arrayIndex = -1)
         {
             object value = null;
@@ -109,6 +100,15 @@ namespace CASCLib
         public IDB2Row Clone()
         {
             return (IDB2Row)MemberwiseClone();
+        }
+
+        public T As<T>() where T : ClientDBRow, new()
+        {
+            T row = new T();
+            m_data.Position = 0;
+            m_data.Offset = m_dataOffset;
+            row.Read(m_data, m_recordsOffset, m_reader.StringTable, m_reader.Meta, m_reader.ColumnMeta, m_reader.PalletData, m_reader.CommonData, m_reader.ReferenceData, m_idRead ? -1 : Id, m_isSparse);
+            return row;
         }
     }
 
