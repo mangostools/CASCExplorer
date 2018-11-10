@@ -12,6 +12,7 @@ namespace CASCLib
         private BitReader m_data;
         private DB2Reader m_reader;
         private int m_dataOffset;
+        private int m_refId;
 
         public int Id { get; set; }
 
@@ -19,12 +20,12 @@ namespace CASCLib
         private ColumnMetaData[] m_columnMeta;
         private Value32[][] m_palletData;
         private Dictionary<int, Value32>[] m_commonData;
-        private ReferenceData m_refData;
 
-        public WDC1Row(DB2Reader reader, BitReader data, int id)
+        public WDC1Row(DB2Reader reader, BitReader data, int id, int refId)
         {
             m_reader = reader;
             m_data = data;
+            m_refId = refId;
 
             m_dataOffset = m_data.Offset;
 
@@ -32,7 +33,6 @@ namespace CASCLib
             m_columnMeta = reader.ColumnMeta;
             m_palletData = reader.PalletData;
             m_commonData = reader.CommonData;
-            m_refData = reader.ReferenceData;
 
             if (id != -1)
                 Id = id;
@@ -75,8 +75,8 @@ namespace CASCLib
 
             if (fieldIndex >= m_reader.Meta.Length)
             {
-                if (m_refData.Entries.TryGetValue(Id, out int refId))
-                    value = refId;
+                if (m_refId != -1)
+                    value = m_refId;
                 else
                     value = 0;
                 return (T)value;
@@ -196,7 +196,7 @@ namespace CASCLib
                 }
 
                 // index data
-                m_indexData = reader.ReadArray<int>(indexDataSize / 4);
+                int[] indexData = reader.ReadArray<int>(indexDataSize / 4);
 
                 // duplicate rows data
                 Dictionary<int, int> copyData = new Dictionary<int, int>();
@@ -256,10 +256,12 @@ namespace CASCLib
                     bitReader.Position = 0;
                     bitReader.Offset = i * RecordSize;
 
-                    IDB2Row rec = new WDC1Row(this, bitReader, indexDataSize != 0 ? m_indexData[i] : -1);
+                    bool hasRef = refData.Entries.TryGetValue(i, out int refId);
+
+                    IDB2Row rec = new WDC1Row(this, bitReader, indexDataSize != 0 ? indexData[i] : -1, hasRef ? refId : -1);
 
                     if (indexDataSize != 0)
-                        _Records.Add(m_indexData[i], rec);
+                        _Records.Add(indexData[i], rec);
                     else
                         _Records.Add(rec.Id, rec);
 

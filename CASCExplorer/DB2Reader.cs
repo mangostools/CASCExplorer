@@ -31,7 +31,7 @@ namespace CASCLib
             Fields = GetType().GetFields(BindingFlags.Public | BindingFlags.Instance).OrderBy(f => f.MetadataToken).ToArray();
         }
 
-        public void Read(BitReader r, long recordsOffset, Dictionary<long, string> stringsTable, FieldMetaData[] fieldMeta, ColumnMetaData[] columnMeta, Value32[][] palletData, Dictionary<int, Value32>[] commonData, ReferenceData refData, int index = -1, bool isSparse = false)
+        public void Read(BitReader r, long recordsOffset, Dictionary<long, string> stringsTable, FieldMetaData[] fieldMeta, ColumnMetaData[] columnMeta, Value32[][] palletData, Dictionary<int, Value32>[] commonData, int refId = -1, int id = -1, bool isSparse = false)
         {
             int fieldIndex = 0;
 
@@ -39,15 +39,15 @@ namespace CASCLib
             {
                 Type t = f.FieldType;
 
-                if (f.Name == "Id" && index != -1)
+                if (f.Name == "Id" && id != -1)
                 {
-                    f.SetValue(this, index);
+                    f.SetValue(this, id);
                     continue;
                 }
 
                 if (fieldIndex >= fieldMeta.Length)
                 {
-                    if (refData.Entries.TryGetValue(GetId(), out int refId))
+                    if (refId != -1)
                         f.SetValue(this, refId);
                     continue;
                 }
@@ -181,9 +181,6 @@ namespace CASCLib
         protected FieldMetaData[] m_meta;
         public FieldMetaData[] Meta => m_meta;
 
-        protected int[] m_indexData;
-        public int[] IndexData => m_indexData;
-
         protected ColumnMetaData[] m_columnMeta;
         public ColumnMetaData[] ColumnMeta => m_columnMeta;
 
@@ -192,9 +189,6 @@ namespace CASCLib
 
         protected Dictionary<int, Value32>[] m_commonData;
         public Dictionary<int, Value32>[] CommonData => m_commonData;
-
-        protected ReferenceData m_refData;
-        public ReferenceData ReferenceData => m_refData;
 
         public Dictionary<long, string> StringTable => m_stringsTable;
 

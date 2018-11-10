@@ -14,14 +14,16 @@ namespace CASCLib
         private int m_recordsOffset;
         private bool m_isSparse;
         private bool m_idRead;
+        private int m_refId;
 
         public int Id { get; set; }
 
-        public WDC3Row(DB2Reader reader, BitReader data, int recordsOffset, int id, bool isSparse)
+        public WDC3Row(DB2Reader reader, BitReader data, int recordsOffset, int id, int refId, bool isSparse)
         {
             m_reader = reader;
             m_data = data;
             m_recordsOffset = recordsOffset;
+            m_refId = refId;
             m_isSparse = isSparse;
 
             m_dataOffset = m_data.Offset;
@@ -69,8 +71,8 @@ namespace CASCLib
 
             if (fieldIndex >= m_reader.Meta.Length)
             {
-                if (m_reader.ReferenceData.Entries.TryGetValue(Id, out int refId))
-                    value = refId;
+                if (m_refId != -1)
+                    value = m_refId;
                 else
                     value = 0;
                 return (T)value;
@@ -107,7 +109,7 @@ namespace CASCLib
             T row = new T();
             m_data.Position = 0;
             m_data.Offset = m_dataOffset;
-            row.Read(m_data, m_recordsOffset, m_reader.StringTable, m_reader.Meta, m_reader.ColumnMeta, m_reader.PalletData, m_reader.CommonData, m_reader.ReferenceData, m_idRead ? -1 : Id, m_isSparse);
+            row.Read(m_data, m_recordsOffset, m_reader.StringTable, m_reader.Meta, m_reader.ColumnMeta, m_reader.PalletData, m_reader.CommonData, m_refId, m_idRead ? -1 : Id, m_isSparse);
             return row;
         }
     }
@@ -231,7 +233,7 @@ namespace CASCLib
                     Array.Resize(ref recordsData, recordsData.Length + 8); // pad with extra zeros so we don't crash when reading
 
                     // index data
-                    m_indexData = reader.ReadArray<int>(sections[sectionIndex].IndexDataSize / 4);
+                    int[] indexData = reader.ReadArray<int>(sections[sectionIndex].IndexDataSize / 4);
 
                     // duplicate rows data
                     Dictionary<int, int> copyData = new Dictionary<int, int>();
@@ -263,10 +265,10 @@ namespace CASCLib
                         // TODO: use this shit
                         int[] sparseIndexData = reader.ReadArray<int>(sections[sectionIndex].NumSparseRecords);
 
-                        if (m_indexData.Length != sparseIndexData.Length)
+                        if (indexData.Length != sparseIndexData.Length)
                             throw new Exception("m_indexData.Length != sparseIndexData.Length");
 
-                        m_indexData = sparseIndexData;
+                        indexData = sparseIndexData;
                     }
 
                     BitReader bitReader = new BitReader(recordsData);
@@ -283,10 +285,12 @@ namespace CASCLib
                         else
                             bitReader.Offset = i * RecordSize;
 
-                        IDB2Row rec = new WDC3Row(this, bitReader, sections[sectionIndex].FileOffset, sections[sectionIndex].IndexDataSize != 0 ? m_indexData[i] : -1, isSparse);
+                        bool hasRef = refData.Entries.TryGetValue(i, out int refId);
+
+                        IDB2Row rec = new WDC3Row(this, bitReader, sections[sectionIndex].FileOffset, sections[sectionIndex].IndexDataSize != 0 ? indexData[i] : -1, hasRef ? refId : -1, isSparse);
 
                         if (sections[sectionIndex].IndexDataSize != 0)
-                            _Records.Add(m_indexData[i], rec);
+                            _Records.Add(indexData[i], rec);
                         else
                             _Records.Add(rec.Id, rec);
 
