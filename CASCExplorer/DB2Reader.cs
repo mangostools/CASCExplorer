@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace CASCLib
 {
@@ -10,6 +11,7 @@ namespace CASCLib
     {
         int Id { get; set; }
         T GetField<T>(int fieldIndex, int arrayIndex = -1);
+        T As<T>() where T : ClientDBRow, new();
         IDB2Row Clone();
     }
 
@@ -200,44 +202,51 @@ namespace CASCLib
 
     public class BitReader
     {
-        private byte[] m_array;
-        private int m_readPos;
-        private int m_readOffset;
+        private byte[] m_data;
+        private int m_bitPosition;
+        private int m_offset;
 
-        public int Position { get => m_readPos; set => m_readPos = value; }
-        public int Offset { get => m_readOffset; set => m_readOffset = value; }
-        public byte[] Data { get => m_array; set => m_array = value; }
+        public int Position { get => m_bitPosition; set => m_bitPosition = value; }
+        public int Offset { get => m_offset; set => m_offset = value; }
+        public byte[] Data { get => m_data; set => m_data = value; }
 
         public BitReader(byte[] data)
         {
-            m_array = data;
+            m_data = data;
         }
 
         public BitReader(byte[] data, int offset)
         {
-            m_array = data;
-            m_readOffset = offset;
-        }
-
-        public uint ReadUInt32(int numBits)
-        {
-            uint result = Unsafe.As<byte, uint>(ref m_array[m_readOffset + (m_readPos >> 3)]) << (32 - numBits - (m_readPos & 7)) >> (32 - numBits);
-            m_readPos += numBits;
-            return result;
+            m_data = data;
+            m_offset = offset;
         }
 
         public T Read<T>(int numBits) where T : unmanaged
         {
-            ulong result = Unsafe.As<byte, ulong>(ref m_array[m_readOffset + (m_readPos >> 3)]) << (64 - numBits - (m_readPos & 7)) >> (64 - numBits);
+            ulong result = Unsafe.As<byte, ulong>(ref m_data[m_offset + (m_bitPosition >> 3)]) << (64 - numBits - (m_bitPosition & 7)) >> (64 - numBits);
+            m_bitPosition += numBits;
             return Unsafe.As<ulong, T>(ref result);
         }
 
         public T ReadSigned<T>(int numBits) where T : unmanaged
         {
-            ulong result = Unsafe.As<byte, ulong>(ref m_array[m_readOffset + (m_readPos >> 3)]) << (64 - numBits - (m_readPos & 7)) >> (64 - numBits);
+            ulong result = Unsafe.As<byte, ulong>(ref m_data[m_offset + (m_bitPosition >> 3)]) << (64 - numBits - (m_bitPosition & 7)) >> (64 - numBits);
+            m_bitPosition += numBits;
             ulong signedShift = (1UL << (numBits - 1));
             result = (signedShift ^ result) - signedShift;
             return Unsafe.As<ulong, T>(ref result);
+        }
+
+        public string ReadCString()
+        {
+            int start = m_bitPosition;
+
+            while (m_data[m_offset + (m_bitPosition >> 3)] != 0)
+                m_bitPosition += 8;
+
+            string result = Encoding.UTF8.GetString(m_data, m_offset + (start >> 3), (m_bitPosition - start) >> 3);
+            m_bitPosition += 8;
+            return result;
         }
     }
 }

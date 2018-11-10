@@ -105,6 +105,11 @@ namespace CASCLib
         {
             return (IDB2Row)MemberwiseClone();
         }
+
+        public T As<T>() where T : ClientDBRow, new()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class WDB6Reader : DB2Reader

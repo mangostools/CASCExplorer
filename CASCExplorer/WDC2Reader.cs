@@ -120,7 +120,7 @@ namespace CASCLib
                     else
                         return columnMeta.Common.DefaultValue.As<T>();
                 case CompressionType.Pallet:
-                    uint palletIndex = r.ReadUInt32(columnMeta.Pallet.BitWidth);
+                    uint palletIndex = r.Read<uint>(columnMeta.Pallet.BitWidth);
 
                     T val1 = palletData[palletIndex].As<T>();
 
@@ -167,7 +167,7 @@ namespace CASCLib
                     if (arraySize != cardinality)
                         throw new Exception("Struct missmatch for pallet array field?");
 
-                    uint palletArrayIndex = r.ReadUInt32(columnMeta.Pallet.BitWidth);
+                    uint palletArrayIndex = r.Read<uint>(columnMeta.Pallet.BitWidth);
 
                     T[] arr3 = new T[cardinality];
 
@@ -182,6 +182,11 @@ namespace CASCLib
         public IDB2Row Clone()
         {
             return (IDB2Row)MemberwiseClone();
+        }
+
+        public T As<T>() where T : ClientDBRow, new()
+        {
+            throw new NotImplementedException();
         }
     }
 
