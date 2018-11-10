@@ -293,7 +293,7 @@ namespace CASCLib
                         // TODO: use this shit
                         int[] sparseIndexData = reader.ReadArray<int>(sections[sectionIndex].NumSparseRecords);
 
-                        if (indexData.Length != sparseIndexData.Length)
+                        if (hasIndex && indexData.Length != sparseIndexData.Length)
                             throw new Exception("indexData.Length != sparseIndexData.Length");
 
                         indexData = sparseIndexData;
