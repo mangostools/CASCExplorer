@@ -118,7 +118,7 @@ namespace CASCLib
 
     public class WDC3Reader : DB2Reader
     {
-        private const int HeaderSize = 72 + 1 * 40;
+        private const int HeaderSize = 72;
         private const uint WDC3FmtSig = 0x33434457; // WDC3
         private Func<ulong, bool> hasTactKeyFunc;
 
@@ -167,6 +167,9 @@ namespace CASCLib
 
                 // field meta data
                 m_meta = reader.ReadArray<FieldMetaData>(FieldsCount);
+
+                if (sectionsCount == 0 || RecordsCount == 0)
+                    return;
 
                 // column meta data
                 m_columnMeta = reader.ReadArray<ColumnMetaData>(FieldsCount);
@@ -306,9 +309,9 @@ namespace CASCLib
 
                         bool hasRef = refData.Entries.TryGetValue(i, out int refId);
 
-                        IDB2Row rec = new WDC3Row(this, bitReader, sections[sectionIndex].FileOffset, sections[sectionIndex].IndexDataSize != 0 ? indexData[i] : -1, hasRef ? refId : -1, isSparse, stringsTable);
+                        IDB2Row rec = new WDC3Row(this, bitReader, sections[sectionIndex].FileOffset, hasIndex ? indexData[i] : -1, hasRef ? refId : -1, isSparse, stringsTable);
 
-                        if (sections[sectionIndex].IndexDataSize != 0)
+                        if (hasIndex)
                             _Records.Add(indexData[i], rec);
                         else
                             _Records.Add(rec.Id, rec);
