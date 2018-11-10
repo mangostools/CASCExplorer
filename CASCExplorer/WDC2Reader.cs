@@ -74,9 +74,12 @@ namespace CASCLib
         {
             object value = null;
 
-            if (fieldIndex >= m_reader.Meta.Length && m_refData.Entries.TryGetValue(Id, out int refId))
+            if (fieldIndex >= m_reader.Meta.Length)
             {
-                value = refId;
+                if (m_refData.Entries.TryGetValue(Id, out int refId))
+                    value = refId;
+                else
+                    value = 0;
                 return (T)value;
             }
 
