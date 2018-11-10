@@ -120,11 +120,17 @@ namespace CASCLib
     {
         private const int HeaderSize = 72 + 1 * 40;
         private const uint WDC3FmtSig = 0x33434457; // WDC3
+        private Func<ulong, bool> hasTactKeyFunc;
 
-        public WDC3Reader(string dbcFile) : this(new FileStream(dbcFile, FileMode.Open)) { }
+        public WDC3Reader(string dbcFile, Func<ulong, bool> hasTactKey = null) : this(new FileStream(dbcFile, FileMode.Open), hasTactKey) { }
 
-        public WDC3Reader(Stream stream)
+        public WDC3Reader(Stream stream, Func<ulong, bool> hasTactKey = null)
         {
+            if (hasTactKey == null)
+                hasTactKeyFunc = (key) => false;
+            else
+                hasTactKeyFunc = hasTactKey;
+
             using (var reader = new BinaryReader(stream, Encoding.UTF8))
             {
                 if (reader.BaseStream.Length < HeaderSize)
@@ -196,7 +202,7 @@ namespace CASCLib
 
                 for (int sectionIndex = 0; sectionIndex < sectionsCount; sectionIndex++)
                 {
-                    if (sections[sectionIndex].TactKeyLookup != 0)
+                    if (sections[sectionIndex].TactKeyLookup != 0 && !hasTactKeyFunc(sections[sectionIndex].TactKeyLookup))
                     {
                         //Console.WriteLine("Detected db2 with encrypted section! HasKey {0}", CASC.HasKey(Sections[sectionIndex].TactKeyLookup));
                         continue;
