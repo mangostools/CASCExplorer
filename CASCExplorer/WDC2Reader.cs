@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace CASCLib
@@ -18,9 +19,9 @@ namespace CASCLib
         private ColumnMetaData[] m_columnMeta;
         private Value32[][] m_palletData;
         private Dictionary<int, Value32>[] m_commonData;
-        private ReferenceEntry? m_refData;
+        private ReferenceData m_refData;
 
-        public WDC2Row(DB2Reader reader, BitReader data, int recordsOffset, int id, ReferenceEntry? refData)
+        public WDC2Row(DB2Reader reader, BitReader data, int recordsOffset, int id)
         {
             m_reader = reader;
             m_data = data;
@@ -32,7 +33,7 @@ namespace CASCLib
             m_columnMeta = reader.ColumnMeta;
             m_palletData = reader.PalletData;
             m_commonData = reader.CommonData;
-            m_refData = refData;
+            m_refData = reader.ReferenceData;
 
             if (id != -1)
                 Id = id;
@@ -73,9 +74,9 @@ namespace CASCLib
         {
             object value = null;
 
-            if (fieldIndex >= m_reader.Meta.Length)
+            if (fieldIndex >= m_reader.Meta.Length && m_refData.Entries.TryGetValue(Id, out int refId))
             {
-                value = m_refData?.Id ?? 0;
+                value = refId;
                 return (T)value;
             }
 
@@ -325,7 +326,8 @@ namespace CASCLib
                             MaxId = reader.ReadInt32()
                         };
 
-                        refData.Entries = reader.ReadArray<ReferenceEntry>(refData.NumRecords);
+                        ReferenceEntry[] entries = reader.ReadArray<ReferenceEntry>(refData.NumRecords);
+                        refData.Entries = entries.ToDictionary(e => e.Index, e => e.Id);
                     }
 
                     BitReader bitReader = new BitReader(recordsData);
@@ -335,7 +337,7 @@ namespace CASCLib
                         bitReader.Position = 0;
                         bitReader.Offset = i * RecordSize;
 
-                        IDB2Row rec = new WDC2Row(this, bitReader, sections[sectionIndex].FileOffset, sections[sectionIndex].IndexDataSize != 0 ? m_indexData[i] : -1, refData?.Entries[i]);
+                        IDB2Row rec = new WDC2Row(this, bitReader, sections[sectionIndex].FileOffset, sections[sectionIndex].IndexDataSize != 0 ? m_indexData[i] : -1);
 
                         if (sections[sectionIndex].IndexDataSize != 0)
                             _Records.Add(m_indexData[i], rec);

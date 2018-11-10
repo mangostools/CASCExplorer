@@ -42,6 +42,9 @@ namespace CASCLib
         protected Dictionary<int, Value32>[] m_commonData;
         public Dictionary<int, Value32>[] CommonData => m_commonData;
 
+        protected ReferenceData m_refData;
+        public ReferenceData ReferenceData => m_refData;
+
         public Dictionary<long, string> StringTable => m_stringsTable;
 
         protected Dictionary<int, IDB2Row> _Records = new Dictionary<int, IDB2Row>();
@@ -153,7 +156,7 @@ namespace CASCLib
         public int NumRecords { get; set; }
         public int MinId { get; set; }
         public int MaxId { get; set; }
-        public ReferenceEntry[] Entries { get; set; }
+        public Dictionary<int, int> Entries { get; set; }
     }
 
     [Flags]
