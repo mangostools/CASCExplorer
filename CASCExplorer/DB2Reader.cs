@@ -305,6 +305,7 @@ namespace CASCLib
         Unknown2 = 0x10
     }
 
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct SparseEntry
     {
         public int Offset;
