@@ -23,7 +23,7 @@ namespace CASCLib
         {
             object retVal;
 
-            fixed(byte *ptr = m_data)
+            fixed (byte* ptr = m_data)
             {
                 switch (Type.GetTypeCode(typeof(T)))
                 {
