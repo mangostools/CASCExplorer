@@ -6,7 +6,6 @@ before_build:
 
 build:
   verbosity: minimal
-  project: CASCExplorer.sln
 
 clone_script:
   - cmd: >-
