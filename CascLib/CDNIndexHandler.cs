@@ -165,9 +165,10 @@ namespace CASCLib
             //}
 
             HttpWebRequest req = WebRequest.CreateHttp(url);
+            req.Timeout = 10000;
             //req.Headers[HttpRequestHeader.Range] = string.Format("bytes={0}-{1}", entry.Offset, entry.Offset + entry.Size - 1);
             req.AddRange(entry.Offset, entry.Offset + entry.Size - 1);
-            using (HttpWebResponse resp = (HttpWebResponse)req.GetResponseAsync().Result)
+            using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())
             using (Stream respStream = resp.GetResponseStream())
             {
                 MemoryStream ms = new MemoryStream(entry.Size);
@@ -239,6 +240,7 @@ namespace CASCLib
         private Stream OpenFile(string url)
         {
             HttpWebRequest request = WebRequest.CreateHttp(url);
+            request.Timeout = 10000;
             using (HttpWebResponse resp = (HttpWebResponse)request.GetResponseAsync().Result)
             using (Stream stream = resp.GetResponseStream())
             {

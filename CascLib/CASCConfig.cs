@@ -311,6 +311,8 @@ namespace CASCLib
 
         public string BuildUID => _Builds[ActiveBuild]["build-uid"][0];
 
+        private static Random rnd = new Random();
+
         public string CDNHost
         {
             get
@@ -325,12 +327,13 @@ namespace CASCLib
                         {
                             var hosts = cdn["Hosts"].Split(' ');
 
-                            for (int j = 0; j < hosts.Length; j++)
-                            {
-                                if (hosts[j].Contains("edgecast") || hosts[j] == "cdn.blizzard.com")
-                                    continue;
-                                return hosts[j];
-                            }
+                            return hosts[rnd.Next(hosts.Length)];
+                            //for (int j = 0; j < hosts.Length; j++)
+                            //{
+                            //    if (hosts[j].Contains("edgecast") || hosts[j] == "cdn.blizzard.com")
+                            //        continue;
+                            //    return hosts[j];
+                            //}
                         }
                     }
                     return _CDNData[0]["Hosts"].Split(' ')[0]; // use first

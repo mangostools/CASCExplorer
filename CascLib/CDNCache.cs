@@ -107,6 +107,8 @@ namespace CASCLib
                 }
                 else
                 {
+                    Logger.WriteLine("CDNCache: {0} not validated, size {1}, expected size {1}", file, stream.Length, meta.Size);
+
                     stream.Close();
                     _metaData.Remove(fileName);
                     fi.Delete();
@@ -159,7 +161,7 @@ namespace CASCLib
 
             HttpWebRequest request = WebRequest.CreateHttp(url);
 
-            using (HttpWebResponse resp = (HttpWebResponse)request.GetResponseAsync().Result)
+            using (HttpWebResponse resp = (HttpWebResponse)request.GetResponse())
             using (Stream stream = resp.GetResponseStream())
             using (Stream fs = new FileStream(path, FileMode.Create, FileAccess.Write))
             {
