@@ -107,7 +107,7 @@ namespace CASCLib
                 }
                 else
                 {
-                    Logger.WriteLine("CDNCache: {0} not validated, size {1}, expected size {1}", file, stream.Length, meta.Size);
+                    Logger.WriteLine($"CDNCache: {file} not validated, sizeOk {sizeOk}, md5Ok {md5Ok}, size {stream.Length}, expected size {meta.Size}");
 
                     stream.Close();
                     _metaData.Remove(fileName);

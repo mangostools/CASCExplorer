@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -30,6 +32,24 @@ namespace CASCLib
         {
             byte[] val = reader.ReadBytes(4);
             return (uint)(val[3] | val[2] << 8 | val[1] << 16 | val[0] << 24);
+        }
+
+        public static Action<T, V> GetSetter<T, V>(this FieldInfo fieldInfo)
+        {
+            var paramExpression = Expression.Parameter(typeof(T));
+            var fieldExpression = Expression.Field(paramExpression, fieldInfo);
+            var valueExpression = Expression.Parameter(fieldInfo.FieldType);
+            var assignExpression = Expression.Assign(fieldExpression, valueExpression);
+
+            return Expression.Lambda<Action<T, V>>(assignExpression, paramExpression, valueExpression).Compile();
+        }
+
+        public static Func<T, V> GetGetter<T, V>(this FieldInfo fieldInfo)
+        {
+            var paramExpression = Expression.Parameter(typeof(T));
+            var fieldExpression = Expression.Field(paramExpression, fieldInfo);
+
+            return Expression.Lambda<Func<T, V>>(fieldExpression, paramExpression).Compile();
         }
 
         public static T Read<T>(this BinaryReader reader) where T : struct
