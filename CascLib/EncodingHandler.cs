@@ -13,7 +13,6 @@ namespace CASCLib
     {
         private static readonly MD5HashComparer comparer = new MD5HashComparer();
         private Dictionary<MD5Hash, EncodingEntry> EncodingData = new Dictionary<MD5Hash, EncodingEntry>(comparer);
-        //private TestDictionary<EncodingEntry> EncodingData = new TestDictionary<EncodingEntry>();
 
         private const int CHUNK_SIZE = 4096;
 
