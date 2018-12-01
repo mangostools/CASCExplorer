@@ -159,9 +159,10 @@ namespace CASCLib
 
             DateTime startTime = DateTime.Now;
 
-            HttpWebRequest request = WebRequest.CreateHttp(url);
-
-            using (HttpWebResponse resp = (HttpWebResponse)request.GetResponse())
+            HttpWebRequest req = WebRequest.CreateHttp(url);
+            long fileSize = GetFileSize(url);
+            req.AddRange(0, fileSize - 1);
+            using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())
             using (Stream stream = resp.GetResponseStream())
             using (Stream fs = new FileStream(path, FileMode.Create, FileAccess.Write))
             {
@@ -174,6 +175,17 @@ namespace CASCLib
             numFilesDownloaded++;
 
             Logger.WriteLine("CDNCache: {0} has been downloaded, spent {1}", url, timeSpent);
+        }
+
+        private static long GetFileSize(string url)
+        {
+            HttpWebRequest request = WebRequest.CreateHttp(url);
+            request.Method = "HEAD";
+
+            using (HttpWebResponse resp = (HttpWebResponse)request.GetResponseAsync().Result)
+            {
+                return resp.ContentLength;
+            }
         }
 
         public CacheMetaData GetMetaData(string url, string fileName)
