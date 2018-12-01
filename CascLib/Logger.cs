@@ -5,8 +5,14 @@ namespace CASCLib
 {
     public class Logger
     {
-        static FileStream fs = new FileStream("debug.log", FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
-        static StreamWriter logger = new StreamWriter(fs) { AutoFlush = true };
+        static readonly FileStream fs;
+        static readonly StreamWriter logger;
+
+        static Logger()
+        {
+            fs = new FileStream("debug.log", FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
+            logger = new StreamWriter(fs) { AutoFlush = true };
+        }
 
         public static void WriteLine(string format, params object[] args)
         {

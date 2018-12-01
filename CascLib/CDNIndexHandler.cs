@@ -258,7 +258,7 @@ namespace CASCLib
             HttpWebRequest request = WebRequest.CreateHttp(url);
             request.Method = "HEAD";
 
-            using (HttpWebResponse resp = (HttpWebResponse)request.GetResponseAsync().Result)
+            using (HttpWebResponse resp = (HttpWebResponse)request.GetResponse())
             {
                 return resp.ContentLength;
             }

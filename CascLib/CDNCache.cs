@@ -182,7 +182,7 @@ namespace CASCLib
             HttpWebRequest request = WebRequest.CreateHttp(url);
             request.Method = "HEAD";
 
-            using (HttpWebResponse resp = (HttpWebResponse)request.GetResponseAsync().Result)
+            using (HttpWebResponse resp = (HttpWebResponse)request.GetResponse())
             {
                 return resp.ContentLength;
             }
@@ -195,7 +195,7 @@ namespace CASCLib
                 HttpWebRequest request = WebRequest.CreateHttp(url);
                 request.Method = "HEAD";
 
-                using (HttpWebResponse resp = (HttpWebResponse)request.GetResponseAsync().Result)
+                using (HttpWebResponse resp = (HttpWebResponse)request.GetResponse())
                 {
                     return CacheFile(resp, fileName);
                 }
