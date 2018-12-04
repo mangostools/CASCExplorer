@@ -22,8 +22,6 @@ namespace CASCLib
         private CASCConfig config;
         private BackgroundWorkerEx worker;
 
-        public static readonly CDNCache Cache = new CDNCache();
-
         public int Count => CDNIndexData.Count;
 
         private CDNIndexHandler(CASCConfig cascConfig, BackgroundWorkerEx worker)
@@ -90,9 +88,8 @@ namespace CASCLib
             try
             {
                 string file = config.CDNPath + "/data/" + archive.Substring(0, 2) + "/" + archive.Substring(2, 2) + "/" + archive + ".index";
-                string url = "http://" + config.CDNHost + "/" + file;
 
-                Stream stream = Cache.OpenFile(file, url, false);
+                Stream stream = CDNCache.Instance.OpenFile(file, false);
 
                 if (stream != null)
                 {
@@ -100,6 +97,8 @@ namespace CASCLib
                 }
                 else
                 {
+                    string url = "http://" + config.CDNHost + "/" + file;
+
                     using (var fs = OpenFile(url))
                         ParseIndex(fs, i);
                 }
@@ -139,9 +138,8 @@ namespace CASCLib
             var archive = config.Archives[entry.Index];
 
             string file = config.CDNPath + "/data/" + archive.Substring(0, 2) + "/" + archive.Substring(2, 2) + "/" + archive;
-            string url = "http://" + config.CDNHost + "/" + file;
 
-            Stream stream = Cache.OpenFile(file, url, true);
+            Stream stream = CDNCache.Instance.OpenFile(file, true);
 
             if (stream != null)
             {
@@ -164,6 +162,8 @@ namespace CASCLib
             //    return ms;
             //}
 
+            string url = "http://" + config.CDNHost + "/" + file;
+
             HttpWebRequest req = WebRequest.CreateHttp(url);
             //req.Headers[HttpRequestHeader.Range] = string.Format("bytes={0}-{1}", entry.Offset, entry.Offset + entry.Size - 1);
             req.AddRange(entry.Offset, entry.Offset + entry.Size - 1);
@@ -184,9 +184,8 @@ namespace CASCLib
             worker?.ReportProgress(0, string.Format("Downloading \"{0}\" file...", keyStr));
 
             string file = config.CDNPath + "/data/" + keyStr.Substring(0, 2) + "/" + keyStr.Substring(2, 2) + "/" + keyStr;
-            string url = "http://" + config.CDNHost + "/" + file;
 
-            Stream stream = Cache.OpenFile(file, url, false);
+            Stream stream = CDNCache.Instance.OpenFile(file, false);
 
             if (stream != null)
             {
@@ -197,18 +196,21 @@ namespace CASCLib
                 return ms;
             }
 
+            string url = "http://" + config.CDNHost + "/" + file;
+
             return OpenFile(url);
         }
 
         public static Stream OpenConfigFileDirect(CASCConfig cfg, string key)
         {
             string file = cfg.CDNPath + "/config/" + key.Substring(0, 2) + "/" + key.Substring(2, 2) + "/" + key;
-            string url = "http://" + cfg.CDNHost + "/" + file;
 
-            Stream stream = Cache.OpenFile(file, url, false);
+            Stream stream = CDNCache.Instance.OpenFile(file, false);
 
             if (stream != null)
                 return stream;
+
+            string url = "http://" + cfg.CDNHost + "/" + file;
 
             return OpenFileDirect(url);
         }
