@@ -138,7 +138,7 @@ namespace CASCLib
             return stream;
         }
 
-        public CacheMetaData CacheFile(HttpWebResponse resp, string fileName)
+        private CacheMetaData CacheFile(HttpWebResponse resp, string fileName)
         {
             string md5 = resp.Headers[HttpResponseHeader.ETag].Split(':')[0].Substring(1);
             CacheMetaData meta = new CacheMetaData(resp.ContentLength, md5);
@@ -152,11 +152,32 @@ namespace CASCLib
             return meta;
         }
 
+        public void InvalidateFile(string fileName)
+        {
+            fileName = fileName.ToLower();
+            _metaData.Remove(fileName);
+
+            if (_dataStreams.TryGetValue(fileName, out Stream stream))
+                stream.Dispose();
+
+            _dataStreams.Remove(fileName);
+
+            string file = _config.CDNPath + "/data/" + fileName.Substring(0, 2) + "/" + fileName.Substring(2, 2) + "/" + fileName;
+
+            File.Delete(Path.Combine(CachePath, file));
+
+            using (var sw = File.AppendText(Path.Combine(CachePath, "cache.meta")))
+            {
+                foreach (var meta in _metaData)
+                {
+                    sw.WriteLine($"{meta.Key} {meta.Value.Size} {meta.Value.MD5}");
+                }
+            }
+        }
+
         public static TimeSpan timeSpentDownloading = TimeSpan.Zero;
         public static int numFilesOpened = 0;
         public static int numFilesDownloaded = 0;
-
-        //HttpClient client = new HttpClient();
 
         private bool DownloadFile(string cdnPath, string path, int numRetries = 0)
         {
@@ -269,7 +290,7 @@ namespace CASCLib
             }
         }
 
-        public CacheMetaData GetMetaData(string cdnPath, string fileName, int numRetries = 0)
+        private CacheMetaData GetMetaData(string cdnPath, string fileName, int numRetries = 0)
         {
             if (numRetries >= 5)
             {
