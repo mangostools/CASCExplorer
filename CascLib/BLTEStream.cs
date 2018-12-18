@@ -164,6 +164,8 @@ namespace CASCLib
             {
                 case 0x45: // E (encrypted)
                     byte[] decrypted = Decrypt(data, index);
+                    if (decrypted == null)
+                        return;
                     HandleDataBlock(decrypted, index);
                     break;
                 case 0x46: // F (frame, recursive)
@@ -224,7 +226,11 @@ namespace CASCLib
             byte[] key = KeyService.GetKey(keyName);
 
             if (key == null)
-                throw new BLTEDecoderException(3, "unknown keyname {0:X16}", keyName);
+            {
+                if (CASCConfig.ThrowOnMissingDecryptionKey && index == 0)
+                    throw new BLTEDecoderException(3, "unknown keyname {0:X16}", keyName);
+                return null;
+            }
 
             if (encType == ENCRYPTION_SALSA20)
             {
