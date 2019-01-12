@@ -79,17 +79,12 @@ namespace CASCLib
             return source.CopyTo<T>();
         }
 
-        public static T[] CopyTo<T>(this byte[] src) where T : struct
+        public static unsafe T[] CopyTo<T>(this byte[] src) where T : struct
         {
             T[] result = new T[src.Length / Unsafe.SizeOf<T>()];
 
             if (src.Length > 0)
-            {
-                unsafe
-                {
-                    Unsafe.CopyBlockUnaligned(Unsafe.AsPointer(ref result[0]), Unsafe.AsPointer(ref src[0]), (uint)src.Length);
-                }
-            }
+                Unsafe.CopyBlockUnaligned(Unsafe.AsPointer(ref result[0]), Unsafe.AsPointer(ref src[0]), (uint)src.Length);
 
             return result;
         }

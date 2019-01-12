@@ -474,7 +474,7 @@ namespace CASCExplorer
 
             foreach (var plugin in ViewPlugins)
             {
-                if (plugin.Metadata.Extensions?.Contains(extension) == true)
+                if (plugin.Metadata.Extensions?.Contains(extension, StringComparer.InvariantCultureIgnoreCase) == true)
                 {
                     ExecPlugin(plugin.Value, file);
                     return;

@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 namespace CASCLib
 {
     [Serializable]
-    class BLTEDecoderException : Exception
+    public class BLTEDecoderException : Exception
     {
         public int ErrorCode { get; }
 
