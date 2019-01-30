@@ -6,7 +6,7 @@ namespace CASCLib
     public sealed class PerfCounter : IDisposable
     {
         private Stopwatch _sw;
-        private string _name;
+        private readonly string _name;
 
         public PerfCounter(string name)
         {

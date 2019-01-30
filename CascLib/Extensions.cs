@@ -52,14 +52,14 @@ namespace CASCLib
             return Expression.Lambda<Func<T, V>>(fieldExpression, paramExpression).Compile();
         }
 
-        public static T Read<T>(this BinaryReader reader) where T : struct
+        public static T Read<T>(this BinaryReader reader) where T : unmanaged
         {
             byte[] result = reader.ReadBytes(Unsafe.SizeOf<T>());
 
             return Unsafe.ReadUnaligned<T>(ref result[0]);
         }
 
-        public static T[] ReadArray<T>(this BinaryReader reader) where T : struct
+        public static T[] ReadArray<T>(this BinaryReader reader) where T : unmanaged
         {
             int numBytes = (int)reader.ReadInt64();
 
@@ -70,7 +70,7 @@ namespace CASCLib
             return source.CopyTo<T>();
         }
 
-        public static T[] ReadArray<T>(this BinaryReader reader, int size) where T : struct
+        public static T[] ReadArray<T>(this BinaryReader reader, int size) where T : unmanaged
         {
             int numBytes = Unsafe.SizeOf<T>() * size;
 
@@ -79,7 +79,7 @@ namespace CASCLib
             return source.CopyTo<T>();
         }
 
-        public static unsafe T[] CopyTo<T>(this byte[] src) where T : struct
+        public static unsafe T[] CopyTo<T>(this byte[] src) where T : unmanaged
         {
             T[] result = new T[src.Length / Unsafe.SizeOf<T>()];
 
