@@ -64,6 +64,7 @@ namespace CASCLib
     {
         private MultiDictionary<ulong, RootEntry> RootData = new MultiDictionary<ulong, RootEntry>();
         private Dictionary<int, ulong> FileDataStore = new Dictionary<int, ulong>();
+        private Dictionary<int, string> FileDataNamesStore = new Dictionary<int, string>();
         private Dictionary<ulong, int> FileDataStoreReverse = new Dictionary<ulong, int>();
         private HashSet<ulong> UnknownFiles = new HashSet<ulong>();
 
@@ -75,9 +76,28 @@ namespace CASCLib
         {
             worker?.ReportProgress(0, "Loading \"root\"...");
 
+            int magic = stream.ReadInt32();
+
+            int numFilesTotal = 0, numFilesWithNameHash = 0, numFilesRead = 0;
+
+            if (magic == 0x4D465354)
+            {
+                if (File.Exists("newlistfile.txt"))
+                    LoadNewListFile("newlistfile.txt");
+
+                numFilesTotal = stream.ReadInt32();
+                numFilesWithNameHash = stream.ReadInt32();
+            }
+            else
+            {
+                stream.BaseStream.Position -= 4;
+            }
+
             while (stream.BaseStream.Position < stream.BaseStream.Length)
             {
                 int count = stream.ReadInt32();
+
+                numFilesRead += count;
 
                 ContentFlags contentFlags = (ContentFlags)stream.ReadUInt32();
                 LocaleFlags localeFlags = (LocaleFlags)stream.ReadUInt32();
@@ -85,7 +105,7 @@ namespace CASCLib
                 if (localeFlags == LocaleFlags.None)
                     throw new Exception("block.LocaleFlags == LocaleFlags.None");
 
-                if (contentFlags != ContentFlags.None && (contentFlags & (ContentFlags.F00000001 | ContentFlags.F00000008 | ContentFlags.F00000010 | ContentFlags.LowViolence | ContentFlags.NoCompression | ContentFlags.F20000000)) == 0)
+                if (contentFlags != ContentFlags.None && (contentFlags & (ContentFlags.F00000001 | ContentFlags.F00000008 | ContentFlags.F00000010 | ContentFlags.LowViolence | ContentFlags.NoCompression | ContentFlags.F10000000 | ContentFlags.F20000000)) == 0)
                     throw new Exception("block.ContentFlags != ContentFlags.None");
 
                 RootEntry[] entries = new RootEntry[count];
@@ -104,30 +124,69 @@ namespace CASCLib
 
                 //Console.WriteLine("Block: {0} {1} (size {2})", block.ContentFlags, block.LocaleFlags, count);
 
+                ulong[] nameHashes = null;
+
+                if (magic == 0x4D465354)
+                {
+                    for (var i = 0; i < count; ++i)
+                        entries[i].MD5 = stream.Read<MD5Hash>();
+
+                    if (numFilesRead > numFilesTotal - numFilesWithNameHash)
+                    {
+                        nameHashes = new ulong[count];
+
+                        for (var i = 0; i < count; ++i)
+                            nameHashes[i] = stream.ReadUInt64();
+                    }
+                }
+                else
+                {
+                    nameHashes = new ulong[count];
+
+                    for (var i = 0; i < count; ++i)
+                    {
+                        entries[i].MD5 = stream.Read<MD5Hash>();
+                        nameHashes[i] = stream.ReadUInt64();
+                    }
+                }
+
                 for (var i = 0; i < count; ++i)
                 {
-                    entries[i].MD5 = stream.Read<MD5Hash>();
+                    int fileDataId = filedataIds[i];
 
-                    ulong hash = stream.ReadUInt64();
+                    ulong hash;
 
-                    RootData.Add(hash, entries[i]);
+                    if (nameHashes == null)
+                    {
+                        string fileName;
+
+                        if (!FileDataNamesStore.TryGetValue(fileDataId, out fileName))
+                            fileName = "FILEDATA_" + filedataIds[i];
+
+                        hash = Hasher.ComputeHash(fileName);
+
+                        RootData.Add(hash, entries[i]);
+                    }
+                    else
+                    {
+                        hash = nameHashes[i];
+
+                        RootData.Add(hash, entries[i]);
+                    }
 
                     //Console.WriteLine("File: {0:X8} {1:X16} {2}", entries[i].FileDataId, hash, entries[i].MD5.ToHexString());
-
-                    int fileDataId = filedataIds[i];
 
                     if (FileDataStore.TryGetValue(fileDataId, out ulong hash2))
                     {
                         if (hash2 == hash)
                         {
                             // duplicate, skipping
-                            continue;
                         }
                         else
                         {
                             Logger.WriteLine("ERROR: got miltiple hashes for filedataid {0}", fileDataId);
-                            continue;
                         }
+                        continue;
                     }
 
                     FileDataStore.Add(fileDataId, hash);
@@ -251,6 +310,22 @@ namespace CASCLib
             }
 
             return true;
+        }
+
+        private void LoadNewListFile(string path)
+        {
+            using (var reader = new StreamReader(path))
+            {
+                string line;
+                char[] splitChar = new char[] { ' ' };
+
+                while ((line = reader.ReadLine()) != null)
+                {
+                    string[] tokens = line.Split(splitChar, 2);
+
+                    FileDataNamesStore.Add(int.Parse(tokens[0]), tokens[1]);
+                }
+            }
         }
 
         public override void LoadListFile(string path, BackgroundWorkerEx worker = null)
