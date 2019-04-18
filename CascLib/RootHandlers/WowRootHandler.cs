@@ -154,6 +154,8 @@ namespace CASCLib
                 {
                     int fileDataId = filedataIds[i];
 
+                    //Logger.WriteLine("filedataid {0}", fileDataId);
+
                     //ulong hash;
 
                     //if (nameHashes == null)
@@ -337,8 +339,8 @@ namespace CASCLib
         {
             //CASCFile.Files.Clear();
 
-            if (LoadPreHashedListFile("listfile.bin", path, worker))
-                return;
+            //if (LoadPreHashedListFile("listfile.bin", path, worker))
+            //    return;
 
             using (var _ = new PerfCounter("WowRootHandler::LoadListFile()"))
             {
@@ -354,12 +356,12 @@ namespace CASCLib
 
                 Logger.WriteLine("WowRootHandler: loading file names...");
 
-                Dictionary<string, Dictionary<ulong, string>> dirData = new Dictionary<string, Dictionary<ulong, string>>(StringComparer.OrdinalIgnoreCase)
-                {
-                    [""] = new Dictionary<ulong, string>()
-                };
-                using (var fs = new FileStream("listfile.bin", FileMode.Create))
-                using (var bw = new BinaryWriter(fs))
+                //Dictionary<string, Dictionary<ulong, string>> dirData = new Dictionary<string, Dictionary<ulong, string>>(StringComparer.OrdinalIgnoreCase)
+                //{
+                //    [""] = new Dictionary<ulong, string>()
+                //};
+                //using (var fs = new FileStream("listfile.bin", FileMode.Create))
+                //using (var bw = new BinaryWriter(fs))
                 using (var fs2 = File.Open(path, FileMode.Open))
                 using (var sr = new StreamReader(fs2))
                 {
@@ -370,6 +372,13 @@ namespace CASCLib
                     while ((line = sr.ReadLine()) != null)
                     {
                         string[] tokens = line.Split(splitChar, 2);
+
+                        if (tokens.Length != 2)
+                        {
+                            Logger.WriteLine("Invalid listfile: {0}", path);
+                            return;
+                        }
+
                         int fileDataId = int.Parse(tokens[0]);
                         string file = tokens[1];
 
@@ -387,51 +396,51 @@ namespace CASCLib
                         if (!FileDataStoreReverse.ContainsKey(fileHash))
                             FileDataStoreReverse.Add(fileHash, fileDataId);
                         else
-                            Logger.WriteLine("WowRootHandler: duplicate file name {0} detected!", file);
+                            Logger.WriteLine($"WowRootHandler: duplicate file name {file} ({fileDataId}) detected !");
 
                         CASCFile.Files[fileHash] = new CASCFile(fileHash, file);
 
-                        int dirSepIndex = file.LastIndexOf('\\');
+                        //int dirSepIndex = file.LastIndexOf('\\');
 
-                        if (dirSepIndex >= 0)
-                        {
-                            string key = file.Substring(0, dirSepIndex);
+                        //if (dirSepIndex >= 0)
+                        //{
+                        //    string key = file.Substring(0, dirSepIndex);
 
-                            if (!dirData.ContainsKey(key))
-                            {
-                                dirData[key] = new Dictionary<ulong, string>();
-                            }
+                        //    if (!dirData.ContainsKey(key))
+                        //    {
+                        //        dirData[key] = new Dictionary<ulong, string>();
+                        //    }
 
-                            dirData[key][fileHash] = file.Substring(dirSepIndex + 1);
-                        }
-                        else
-                            dirData[""][fileHash] = file;
+                        //    dirData[key][fileHash] = file.Substring(dirSepIndex + 1);
+                        //}
+                        //else
+                        //    dirData[""][fileHash] = file;
 
                         worker?.ReportProgress((int)(sr.BaseStream.Position / (float)sr.BaseStream.Length * 100));
                     }
 
-                    bw.Write(dirData.Count); // count of dirs
+                    //bw.Write(dirData.Count); // count of dirs
 
-                    foreach (var dir in dirData)
-                    {
-                        bw.Write(dir.Key); // dir name
+                    //foreach (var dir in dirData)
+                    //{
+                    //    bw.Write(dir.Key); // dir name
 
-                        Logger.WriteLine(dir.Key);
+                    //    Logger.WriteLine(dir.Key);
 
-                        bw.Write(dirData[dir.Key].Count); // count of files in dir
+                    //    bw.Write(dirData[dir.Key].Count); // count of files in dir
 
-                        foreach (var fh in dirData[dir.Key])
-                        {
-                            bw.Write(FileDataStoreReverse[fh.Key]); // fileDataId
-                            bw.Write(fh.Key); // file name hash
-                            bw.Write(fh.Value); // file name (without dir name)
-                        }
-                    }
+                    //    foreach (var fh in dirData[dir.Key])
+                    //    {
+                    //        bw.Write(FileDataStoreReverse[fh.Key]); // fileDataId
+                    //        bw.Write(fh.Key); // file name hash
+                    //        bw.Write(fh.Value); // file name (without dir name)
+                    //    }
+                    //}
 
                     Logger.WriteLine("WowRootHandler: loaded {0} valid file names", CASCFile.Files.Count);
                 }
 
-                File.SetLastWriteTime("listfile.bin", File.GetLastWriteTime(path));
+                //File.SetLastWriteTime("listfile.bin", File.GetLastWriteTime(path));
             }
         }
 
