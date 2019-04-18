@@ -41,6 +41,7 @@ namespace CASCLib
         F00000004 = 0x4,
         F00000008 = 0x8, // added in 7.2.0.23436
         F00000010 = 0x10, // added in 7.2.0.23436
+        F00000800 = 0x800,
         LowViolence = 0x80, // many models have this flag
         F10000000 = 0x10000000, // doesn't have name hash?
         F20000000 = 0x20000000, // added in 21737
@@ -349,6 +350,8 @@ namespace CASCLib
                     return;
                 }
 
+                bool isCsv = Path.GetExtension(path) == ".csv";
+
                 Logger.WriteLine("WowRootHandler: loading file names...");
 
                 Dictionary<string, Dictionary<ulong, string>> dirData = new Dictionary<string, Dictionary<ulong, string>>(StringComparer.OrdinalIgnoreCase)
@@ -362,7 +365,7 @@ namespace CASCLib
                 {
                     string line;
 
-                    char[] splitChar = new char[] { ' ' };
+                    char[] splitChar = isCsv ? new char[] { ';' } : new char[] { ' ' };
 
                     while ((line = sr.ReadLine()) != null)
                     {
@@ -380,7 +383,11 @@ namespace CASCLib
                         }
 
                         FileDataStore.Add(fileDataId, fileHash);
-                        FileDataStoreReverse.Add(fileHash, fileDataId);
+
+                        if (!FileDataStoreReverse.ContainsKey(fileHash))
+                            FileDataStoreReverse.Add(fileHash, fileDataId);
+                        else
+                            Logger.WriteLine("WowRootHandler: duplicate file name {0} detected!", file);
 
                         CASCFile.Files[fileHash] = new CASCFile(fileHash, file);
 
