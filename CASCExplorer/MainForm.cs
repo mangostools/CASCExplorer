@@ -488,7 +488,7 @@ namespace CASCExplorer
         {
             using (var dialog = new OpenFileDialog())
             {
-                dialog.Filter = "Text files(*.txt)|*.txt";
+                dialog.Filter = "Text files(*.txt)|*.txt|CSV files (*.csv)|*.csv";
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
                     Settings.Default.ListFilePath = dialog.FileName;
