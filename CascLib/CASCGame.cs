@@ -47,14 +47,20 @@ namespace CASCLib
                 if (File.Exists(Path.Combine(path, "WowT.exe")))
                     return CASCGameType.WoW;
 
-                if (File.Exists(Path.Combine(path, "_retail_", "Wow.exe")))
-                    return CASCGameType.WoW;
-
-                if (File.Exists(Path.Combine(path, "_ptr_", "WowT.exe")))
-                    return CASCGameType.WoW;
-
                 if (File.Exists(Path.Combine(path, "WowB.exe")))
                     return CASCGameType.WoW;
+
+                string[] subFolders = new string[] { "_retail_", "_ptr_", "_classic_" };
+                string[] wowBins = new string[] { "Wow.exe", "WowT.exe", "WowB.exe" };
+
+                foreach (var sf in subFolders)
+                {
+                    foreach (var wb in wowBins)
+                    {
+                        if (File.Exists(Path.Combine(path, sf, wb)))
+                            return CASCGameType.WoW;
+                    }
+                }
 
                 if (File.Exists(Path.Combine(path, "Agent.exe")))
                     return CASCGameType.Agent;

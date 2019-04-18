@@ -42,7 +42,7 @@ namespace CASCLib
         F00000008 = 0x8, // added in 7.2.0.23436
         F00000010 = 0x10, // added in 7.2.0.23436
         LowViolence = 0x80, // many models have this flag
-        F10000000 = 0x10000000,
+        F10000000 = 0x10000000, // doesn't have name hash?
         F20000000 = 0x20000000, // added in 21737
         Bundle = 0x40000000,
         NoCompression = 0x80000000 // sounds have this flag
@@ -62,9 +62,8 @@ namespace CASCLib
 
     public class WowRootHandler : RootHandlerBase
     {
-        private MultiDictionary<ulong, RootEntry> RootData = new MultiDictionary<ulong, RootEntry>();
+        private MultiDictionary<int, RootEntry> RootData = new MultiDictionary<int, RootEntry>();
         private Dictionary<int, ulong> FileDataStore = new Dictionary<int, ulong>();
-        private Dictionary<int, string> FileDataNamesStore = new Dictionary<int, string>();
         private Dictionary<ulong, int> FileDataStoreReverse = new Dictionary<ulong, int>();
         private HashSet<ulong> UnknownFiles = new HashSet<ulong>();
 
@@ -82,8 +81,8 @@ namespace CASCLib
 
             if (magic == 0x4D465354)
             {
-                if (File.Exists("newlistfile.txt"))
-                    LoadNewListFile("newlistfile.txt");
+                //if (File.Exists("newlistfile.txt"))
+                //    LoadNewListFile("newlistfile.txt");
 
                 numFilesTotal = stream.ReadInt32();
                 numFilesWithNameHash = stream.ReadInt32();
@@ -154,43 +153,41 @@ namespace CASCLib
                 {
                     int fileDataId = filedataIds[i];
 
-                    ulong hash;
+                    //ulong hash;
 
-                    if (nameHashes == null)
-                    {
-                        string fileName;
+                    //if (nameHashes == null)
+                    //{
+                    //    string fileName;
 
-                        if (!FileDataNamesStore.TryGetValue(fileDataId, out fileName))
-                            fileName = "FILEDATA_" + filedataIds[i];
+                    //    if (!FileDataStore.TryGetValue(fileDataId, out fileName))
+                    //        fileName = "FILEDATA_" + filedataIds[i];
 
-                        hash = Hasher.ComputeHash(fileName);
+                    //    hash = Hasher.ComputeHash(fileName);
+                    //}
+                    //else
+                    //{
+                    //    hash = nameHashes[i];
+                    //}
 
-                        RootData.Add(hash, entries[i]);
-                    }
-                    else
-                    {
-                        hash = nameHashes[i];
-
-                        RootData.Add(hash, entries[i]);
-                    }
+                    RootData.Add(fileDataId, entries[i]);
 
                     //Console.WriteLine("File: {0:X8} {1:X16} {2}", entries[i].FileDataId, hash, entries[i].MD5.ToHexString());
 
-                    if (FileDataStore.TryGetValue(fileDataId, out ulong hash2))
-                    {
-                        if (hash2 == hash)
-                        {
-                            // duplicate, skipping
-                        }
-                        else
-                        {
-                            Logger.WriteLine("ERROR: got miltiple hashes for filedataid {0}", fileDataId);
-                        }
-                        continue;
-                    }
+                    //if (FileDataStore.TryGetValue(fileDataId, out ulong hash2))
+                    //{
+                    //    if (hash2 == hash)
+                    //    {
+                    //        // duplicate, skipping
+                    //    }
+                    //    else
+                    //    {
+                    //        Logger.WriteLine("ERROR: got miltiple hashes for filedataid {0}", fileDataId);
+                    //    }
+                    //    continue;
+                    //}
 
-                    FileDataStore.Add(fileDataId, hash);
-                    FileDataStoreReverse.Add(hash, fileDataId);
+                    //FileDataStore.Add(fileDataId, hash);
+                    //FileDataStoreReverse.Add(hash, fileDataId);
                 }
 
                 worker?.ReportProgress((int)(stream.BaseStream.Position / (float)stream.BaseStream.Length * 100));
@@ -203,14 +200,15 @@ namespace CASCLib
         {
             foreach (var set in RootData)
                 foreach (var entry in set.Value)
-                    yield return new KeyValuePair<ulong, RootEntry>(set.Key, entry);
+                    yield return new KeyValuePair<ulong, RootEntry>(FileDataStore[set.Key], entry);
         }
 
         public override IEnumerable<RootEntry> GetAllEntries(ulong hash)
         {
-            RootData.TryGetValue(hash, out List<RootEntry> result);
+            if (!FileDataStoreReverse.TryGetValue(hash, out int fileDataId))
+                yield break;
 
-            if (result == null)
+            if (!RootData.TryGetValue(FileDataStoreReverse[hash], out List<RootEntry> result))
                 yield break;
 
             foreach (var entry in result)
@@ -240,6 +238,8 @@ namespace CASCLib
             foreach (var entry in rootInfosLocale)
                 yield return entry;
         }
+
+        public bool FileExist(int fileDataId) => RootData.ContainsKey(fileDataId);
 
         public ulong GetHashByFileDataId(int fileDataId)
         {
@@ -287,17 +287,21 @@ namespace CASCLib
 
                         for (int j = 0; j < numFiles; j++)
                         {
+                            int fileDataId = br.ReadInt32();
                             ulong fileHash = br.ReadUInt64();
                             string fileName = br.ReadString();
 
                             string fileNameFull = dirName != String.Empty ? dirName + "\\" + fileName : fileName;
 
                             // skip invalid names
-                            if (!RootData.ContainsKey(fileHash))
+                            if (!RootData.ContainsKey(fileDataId))
                             {
                                 Logger.WriteLine("Invalid file name: {0}", fileNameFull);
                                 continue;
                             }
+
+                            FileDataStore.Add(fileDataId, fileHash);
+                            FileDataStoreReverse.Add(fileHash, fileDataId);
 
                             CASCFile.Files[fileHash] = new CASCFile(fileHash, fileNameFull);
                         }
@@ -312,21 +316,21 @@ namespace CASCLib
             return true;
         }
 
-        private void LoadNewListFile(string path)
-        {
-            using (var reader = new StreamReader(path))
-            {
-                string line;
-                char[] splitChar = new char[] { ' ' };
+        //private void LoadNewListFile(string path)
+        //{
+        //    using (var reader = new StreamReader(path))
+        //    {
+        //        string line;
+        //        char[] splitChar = new char[] { ' ' };
 
-                while ((line = reader.ReadLine()) != null)
-                {
-                    string[] tokens = line.Split(splitChar, 2);
+        //        while ((line = reader.ReadLine()) != null)
+        //        {
+        //            string[] tokens = line.Split(splitChar, 2);
 
-                    FileDataNamesStore.Add(int.Parse(tokens[0]), tokens[1]);
-                }
-            }
-        }
+        //            FileDataStore.Add(int.Parse(tokens[0]), Hasher.ComputeHash(tokens[1]));
+        //        }
+        //    }
+        //}
 
         public override void LoadListFile(string path, BackgroundWorkerEx worker = null)
         {
@@ -356,18 +360,27 @@ namespace CASCLib
                 using (var fs2 = File.Open(path, FileMode.Open))
                 using (var sr = new StreamReader(fs2))
                 {
-                    string file;
+                    string line;
 
-                    while ((file = sr.ReadLine()) != null)
+                    char[] splitChar = new char[] { ' ' };
+
+                    while ((line = sr.ReadLine()) != null)
                     {
+                        string[] tokens = line.Split(splitChar, 2);
+                        int fileDataId = int.Parse(tokens[0]);
+                        string file = tokens[1];
+
                         ulong fileHash = Hasher.ComputeHash(file);
 
                         // skip invalid names
-                        if (!RootData.ContainsKey(fileHash))
+                        if (!RootData.ContainsKey(fileDataId))
                         {
                             Logger.WriteLine("Invalid file name: {0}", file);
                             continue;
                         }
+
+                        FileDataStore.Add(fileDataId, fileHash);
+                        FileDataStoreReverse.Add(fileHash, fileDataId);
 
                         CASCFile.Files[fileHash] = new CASCFile(fileHash, file);
 
@@ -402,6 +415,7 @@ namespace CASCLib
 
                         foreach (var fh in dirData[dir.Key])
                         {
+                            bw.Write(FileDataStoreReverse[fh.Key]); // fileDataId
                             bw.Write(fh.Key); // file name hash
                             bw.Write(fh.Value); // file name (without dir name)
                         }
@@ -438,18 +452,28 @@ namespace CASCLib
                 if (!rootInfosLocale.Any())
                     continue;
 
-                string filename;
+                string filename = null;
 
-                if (!CASCFile.Files.TryGetValue(rootEntry.Key, out CASCFile file))
+                if (!FileDataStore.TryGetValue(rootEntry.Key, out ulong hash))
                 {
-                    filename = "unknown\\" + rootEntry.Key.ToString("X16") + "_" + GetFileDataIdByHash(rootEntry.Key);
+                    filename = "unknown\\" + "FILEDATA_" + rootEntry.Key;
 
-                    UnknownFiles.Add(rootEntry.Key);
+                    hash = Hasher.ComputeHash(filename);
+
+                    FileDataStoreReverse.Add(hash, rootEntry.Key);
+
+                    UnknownFiles.Add(hash);
                 }
                 else
-                    filename = file.FullName;
+                {
+                    if (CASCFile.Files.TryGetValue(hash, out CASCFile file))
+                        filename = file.FullName;
+                }
 
-                CreateSubTree(root, rootEntry.Key, filename);
+                if (filename == null)
+                    throw new Exception("filename == null");
+
+                CreateSubTree(root, hash, filename);
                 CountSelect++;
             }
 
@@ -477,16 +501,16 @@ namespace CASCLib
 
         public override void Dump()
         {
-            foreach (var fd in RootData.OrderBy(r => GetFileDataIdByHash(r.Key)))
+            foreach (var fd in RootData.OrderBy(r => r.Key))
             {
                 string name;
 
-                if (!CASCFile.Files.TryGetValue(fd.Key, out CASCFile file))
+                if (!CASCFile.Files.TryGetValue(FileDataStore[fd.Key], out CASCFile file))
                     name = fd.Key.ToString("X16");
                 else
                     name = file.FullName;
 
-                Logger.WriteLine("{0:D7} {1:X16} {2} {3}", GetFileDataIdByHash(fd.Key), fd.Key, fd.Value.Aggregate(LocaleFlags.None, (a, b) => a | b.LocaleFlags), name);
+                Logger.WriteLine("{0:D7} {1:X16} {2} {3}", fd.Key, fd.Key, fd.Value.Aggregate(LocaleFlags.None, (a, b) => a | b.LocaleFlags), name);
 
                 foreach (var entry in fd.Value)
                 {

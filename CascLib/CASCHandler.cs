@@ -119,7 +119,7 @@ namespace CASCLib
         public override bool FileExists(int fileDataId)
         {
             if (Root is WowRootHandler rh)
-                return FileExists(rh.GetHashByFileDataId(fileDataId));
+                return rh.FileExist(fileDataId);
             return false;
         }
 
