@@ -479,6 +479,7 @@ namespace CASCLib
 
                     hash = Hasher.ComputeHash(filename);
 
+                    FileDataStore.Add(rootEntry.Key, hash);
                     FileDataStoreReverse.Add(hash, rootEntry.Key);
 
                     UnknownFiles.Add(hash);
@@ -520,14 +521,16 @@ namespace CASCLib
 
         public override void Dump()
         {
+            Logger.WriteLine("WowRootHandler Dump:");
+
             foreach (var fd in RootData.OrderBy(r => r.Key))
             {
                 string name;
 
-                if (!CASCFile.Files.TryGetValue(FileDataStore[fd.Key], out CASCFile file))
-                    name = fd.Key.ToString("X16");
-                else
+                if (FileDataStore.TryGetValue(fd.Key, out ulong hash) && CASCFile.Files.TryGetValue(hash, out CASCFile file))
                     name = file.FullName;
+                else
+                    name = $"FILEDATA_{fd.Key}";
 
                 Logger.WriteLine("{0:D7} {1:X16} {2} {3}", fd.Key, fd.Key, fd.Value.Aggregate(LocaleFlags.None, (a, b) => a | b.LocaleFlags), name);
 
