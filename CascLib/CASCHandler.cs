@@ -85,7 +85,7 @@ namespace CASCLib
                     using (var fs = OpenInstallFile(EncodingHandler, this))
                         InstallHandler = new InstallHandler(fs, worker);
 
-                    InstallHandler.Print();
+                    //InstallHandler.Print();
                 }
 
                 Logger.WriteLine("CASCHandler: loaded {0} install data", InstallHandler.Count);

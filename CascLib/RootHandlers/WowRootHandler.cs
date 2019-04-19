@@ -354,7 +354,7 @@ namespace CASCLib
 
                 bool isCsv = Path.GetExtension(path) == ".csv";
 
-                Logger.WriteLine("WowRootHandler: loading file names...");
+                Logger.WriteLine($"WowRootHandler: loading listfile {path}...");
 
                 //Dictionary<string, Dictionary<ulong, string>> dirData = new Dictionary<string, Dictionary<ulong, string>>(StringComparer.OrdinalIgnoreCase)
                 //{
@@ -375,11 +375,16 @@ namespace CASCLib
 
                         if (tokens.Length != 2)
                         {
-                            Logger.WriteLine($"Invalid listfile: {path}, bad line: {line}");
-                            return;
+                            Logger.WriteLine($"Invalid line in listfile: {line}");
+                            continue;
                         }
 
-                        int fileDataId = int.Parse(tokens[0]);
+                        if (!int.TryParse(tokens[0], out int fileDataId))
+                        {
+                            Logger.WriteLine($"Invalid line in listfile: {line}");
+                            continue;
+                        }
+
                         string file = tokens[1];
 
                         ulong fileHash = Hasher.ComputeHash(file);
@@ -387,19 +392,19 @@ namespace CASCLib
                         // skip invalid names
                         if (!RootData.ContainsKey(fileDataId))
                         {
-                            Logger.WriteLine("Invalid file name: {0}", file);
+                            Logger.WriteLine($"Invalid file name: {line}");
                             continue;
                         }
 
                         if (!FileDataStore.ContainsKey(fileDataId))
                             FileDataStore.Add(fileDataId, fileHash);
                         else
-                            Logger.WriteLine($"WowRootHandler: duplicate fileDataId {file} ({fileDataId}) detected !");
+                            Logger.WriteLine($"Duplicate fileDataId {fileDataId} detected: {line}");
 
                         if (!FileDataStoreReverse.ContainsKey(fileHash))
                             FileDataStoreReverse.Add(fileHash, fileDataId);
                         else
-                            Logger.WriteLine($"WowRootHandler: duplicate file name {file} ({fileDataId}) detected !");
+                            Logger.WriteLine($"Duplicate file name {file} detected: {line}");
 
                         CASCFile.Files[fileHash] = new CASCFile(fileHash, file);
 
@@ -439,9 +444,9 @@ namespace CASCLib
                     //        bw.Write(fh.Value); // file name (without dir name)
                     //    }
                     //}
-
-                    Logger.WriteLine("WowRootHandler: loaded {0} valid file names", CASCFile.Files.Count);
                 }
+
+                Logger.WriteLine("WowRootHandler: loaded {0} valid file names", CASCFile.Files.Count);
 
                 //File.SetLastWriteTime("listfile.bin", File.GetLastWriteTime(path));
             }
