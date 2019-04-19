@@ -375,7 +375,7 @@ namespace CASCLib
 
                         if (tokens.Length != 2)
                         {
-                            Logger.WriteLine("Invalid listfile: {0}", path);
+                            Logger.WriteLine($"Invalid listfile: {path}, bad line: {line}");
                             return;
                         }
 
@@ -391,7 +391,10 @@ namespace CASCLib
                             continue;
                         }
 
-                        FileDataStore.Add(fileDataId, fileHash);
+                        if (!FileDataStore.ContainsKey(fileDataId))
+                            FileDataStore.Add(fileDataId, fileHash);
+                        else
+                            Logger.WriteLine($"WowRootHandler: duplicate fileDataId {file} ({fileDataId}) detected !");
 
                         if (!FileDataStoreReverse.ContainsKey(fileHash))
                             FileDataStoreReverse.Add(fileHash, fileDataId);
