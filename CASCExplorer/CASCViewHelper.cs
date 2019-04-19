@@ -243,7 +243,7 @@ namespace CASCExplorer
 
                             foreach (var file in name)
                             {
-                                Logger.WriteLine(file);
+                                //Logger.WriteLine(file);
 
                                 string[] parts = file.Split(PathDelimiters);
 
@@ -275,6 +275,8 @@ namespace CASCExplorer
                                 string m2name = br.ReadCString();
 
                                 unknownFile.FullName = "unknown\\" + m2name + ".m2";
+
+                                Logger.WriteLine($"{wowRoot.GetFileDataIdByHash(unknownFile.Hash)};{unknownFile.FullName}");
                             }
                         }
                     }
