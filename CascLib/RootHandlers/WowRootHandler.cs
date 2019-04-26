@@ -227,7 +227,7 @@ namespace CASCLib
 
         public IEnumerable<RootEntry> GetEntriesByFileDataId(int fileDataId) => GetEntries(GetHashByFileDataId(fileDataId));
 
-        // Returns only entries that match current locale and content flags
+        // Returns only entries that match current locale and override setting
         public override IEnumerable<RootEntry> GetEntries(ulong hash)
         {
             var rootInfos = GetAllEntries(hash);
@@ -235,16 +235,14 @@ namespace CASCLib
             if (!rootInfos.Any())
                 yield break;
 
-            var rootInfosLocale = rootInfos.Where(re => (re.LocaleFlags & Locale) != 0);
-            //var rootInfosLocale = rootInfos.Where(re => (re.LocaleFlags & Locale) != 0).OrderBy(re => re.ContentFlags);
+            var rootInfosLocale = rootInfos.Where(re => (re.LocaleFlags & Locale) != LocaleFlags.None);
 
-            if (rootInfosLocale.Count() > 1)
+            if (rootInfosLocale.Count() > 1 && OverrideArchive)
             {
-                var rootInfosLocaleAndContent = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.LowViolence) == 0);
-                //var rootInfosLocaleAndContent = rootInfosLocale.Where(re => (re.ContentFlags & Content) != 0).OrderBy(re => re.ContentFlags);
+                var rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.LowViolence) != ContentFlags.None);
 
-                if (rootInfosLocaleAndContent.Any())
-                    rootInfosLocale = rootInfosLocaleAndContent;
+                if (rootInfosLocaleOverride.Any())
+                    rootInfosLocale = rootInfosLocaleOverride;
             }
 
             foreach (var entry in rootInfosLocale)
@@ -343,14 +341,14 @@ namespace CASCLib
             // Create new tree based on specified locale
             foreach (var rootEntry in RootData)
             {
-                var rootInfosLocale = rootEntry.Value.Where(re => (re.LocaleFlags & Locale) != 0);
+                var rootInfosLocale = rootEntry.Value.Where(re => (re.LocaleFlags & Locale) != LocaleFlags.None);
 
-                if (rootInfosLocale.Count() > 1)
+                if (rootInfosLocale.Count() > 1 && OverrideArchive)
                 {
-                    var rootInfosLocaleAndContent = rootInfosLocale.Where(re => (re.ContentFlags == Content));
+                    var rootInfosLocaleOverride = rootInfosLocale.Where(re => ((re.ContentFlags & ContentFlags.LowViolence) != ContentFlags.None));
 
-                    if (rootInfosLocaleAndContent.Any())
-                        rootInfosLocale = rootInfosLocaleAndContent;
+                    if (rootInfosLocaleOverride.Any())
+                        rootInfosLocale = rootInfosLocaleOverride;
                 }
 
                 if (!rootInfosLocale.Any())

@@ -27,9 +27,9 @@ namespace CASCExplorer
 
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
-            string arg = (string)e.Argument;
+            (bool online, string path, string product) = ((bool online, string path, string product))e.Argument;
             CASCConfig.LoadFlags |= LoadFlags.Install;
-            CASCConfig config = _onlineMode ? CASCConfig.LoadOnlineStorageConfig(arg, "us") : CASCConfig.LoadLocalStorageConfig(arg);
+            CASCConfig config = _onlineMode ? CASCConfig.LoadOnlineStorageConfig(product, "us") : CASCConfig.LoadLocalStorageConfig(path, product);
 
             if (_onlineMode)
             {
@@ -49,7 +49,7 @@ namespace CASCExplorer
 
             var casc = CASCHandler.OpenStorage(config, backgroundWorker1);
 
-            casc.Root.SetFlags(Settings.Default.LocaleFlags, Settings.Default.ContentFlags, false);
+            casc.Root.SetFlags(Settings.Default.LocaleFlags, Settings.Default.OverrideArchive, false);
 
             LoadFileDataComplete(casc);
 
@@ -58,7 +58,7 @@ namespace CASCExplorer
                 casc.Root.LoadListFile(Settings.Default.ListFilePath, backgroundWorker1);
             }
 
-            var fldr = casc.Root.SetFlags(Settings.Default.LocaleFlags, Settings.Default.ContentFlags);
+            var fldr = casc.Root.SetFlags(Settings.Default.LocaleFlags, Settings.Default.OverrideArchive);
             casc.Root.MergeInstall(casc.Install);
 
             GC.Collect();
@@ -142,16 +142,10 @@ namespace CASCExplorer
             DialogResult = DialogResult.OK;
         }
 
-        public void LoadLocalStorage(string path)
+        public void LoadStorage((bool online, string path, string product) options)
         {
-            _onlineMode = false;
-            backgroundWorker1.RunWorkerAsync(path);
-        }
-
-        public void LoadOnlineStorage(string product)
-        {
-            _onlineMode = true;
-            backgroundWorker1.RunWorkerAsync(product);
+            _onlineMode = options.online;
+            backgroundWorker1.RunWorkerAsync(options);
         }
     }
 }

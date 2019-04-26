@@ -12,7 +12,7 @@ namespace CASCExplorer.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.8.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.1.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -37,23 +37,22 @@ namespace CASCExplorer.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("None")]
-        public global::CASCLib.ContentFlags ContentFlags {
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool OverrideArchive {
             get {
-                return ((global::CASCLib.ContentFlags)(this["ContentFlags"]));
+                return ((bool)(this["OverrideArchive"]));
             }
             set {
-                this["ContentFlags"] = value;
+                this["OverrideArchive"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<ArrayOfString xmlns:xsi=\"http://www.w3." +
-            "org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" />")]
-        public global::System.Collections.Specialized.StringCollection RecentStorages {
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string RecentStorages {
             get {
-                return ((global::System.Collections.Specialized.StringCollection)(this["RecentStorages"]));
+                return ((string)(this["RecentStorages"]));
             }
             set {
                 this["RecentStorages"] = value;
@@ -74,7 +73,7 @@ namespace CASCExplorer.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("listfile.txt")]
+        [global::System.Configuration.DefaultSettingValueAttribute("listfile.csv")]
         public string ListFilePath {
             get {
                 return ((string)(this["ListFilePath"]));

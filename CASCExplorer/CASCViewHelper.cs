@@ -162,11 +162,11 @@ namespace CASCExplorer
                         }
                     }
 
-                    if (_casc.FileExists("DBFilesClient\\SoundKit.db2") && _casc.FileExists("DBFilesClient\\SoundKitEntry.db2") && _casc.FileExists("DBFilesClient\\SoundKitName.db2"))
+                    if (_casc.FileExists(1237434/*"DBFilesClient\\SoundKit.db2"*/) && _casc.FileExists(1237435/*"DBFilesClient\\SoundKitEntry.db2"*/) && _casc.FileExists(1665033/*"DBFilesClient\\SoundKitName.db2"*/))
                     {
-                        using (Stream skStream = _casc.OpenFile("DBFilesClient\\SoundKit.db2"))
-                        using (Stream skeStream = _casc.OpenFile("DBFilesClient\\SoundKitEntry.db2"))
-                        using (Stream sknStream = _casc.OpenFile("DBFilesClient\\SoundKitName.db2"))
+                        using (Stream skStream = _casc.OpenFile(1237434))
+                        using (Stream skeStream = _casc.OpenFile(1237435))
+                        using (Stream sknStream = _casc.OpenFile(1665033))
                         {
                             WDC3Reader sk = new WDC3Reader(skStream);
                             WDC3Reader ske = new WDC3Reader(skeStream);
@@ -353,16 +353,13 @@ namespace CASCExplorer
             }
         }
 
-        public void OpenStorage(string arg, bool online)
+        public void OpenStorage(bool online, string path, string product)
         {
             Cleanup();
 
             using (var initForm = new InitForm())
             {
-                if (online)
-                    initForm.LoadOnlineStorage(arg);
-                else
-                    initForm.LoadLocalStorage(arg);
+                initForm.LoadStorage((online, path, product));
 
                 DialogResult res = initForm.ShowDialog();
 
@@ -387,25 +384,22 @@ namespace CASCExplorer
 
             Settings.Default.LocaleFlags = (LocaleFlags)Enum.Parse(typeof(LocaleFlags), locale);
 
-            _root = _casc.Root.SetFlags(Settings.Default.LocaleFlags, Settings.Default.ContentFlags);
+            _root = _casc.Root.SetFlags(Settings.Default.LocaleFlags, Settings.Default.OverrideArchive);
             _casc.Root.MergeInstall(_casc.Install);
 
             OnStorageChanged?.Invoke();
         }
 
-        public void ChangeContentFlags(bool set)
+        public void SetOverrideArchive(bool set)
         {
             if (_casc == null)
                 return;
 
             OnCleanup?.Invoke();
 
-            if (set)
-                Settings.Default.ContentFlags |= ContentFlags.LowViolence;
-            else
-                Settings.Default.ContentFlags &= ~ContentFlags.LowViolence;
+            Settings.Default.OverrideArchive = set;
 
-            _root = _casc.Root.SetFlags(Settings.Default.LocaleFlags, Settings.Default.ContentFlags);
+            _root = _casc.Root.SetFlags(Settings.Default.LocaleFlags, Settings.Default.OverrideArchive);
             _casc.Root.MergeInstall(_casc.Install);
 
             OnStorageChanged?.Invoke();
@@ -630,12 +624,22 @@ namespace CASCExplorer
         {
             WowRootHandler wowRoot = CASC.Root as WowRootHandler;
 
-            using (StreamWriter sw = new StreamWriter("listfile_export.txt"))
+            using (StreamWriter sw = new StreamWriter(wowRoot != null ? "listfile_export.csv" : "listfile_export.txt"))
             {
                 foreach (var file in CASCFile.Files.OrderBy(f => f.Value.FullName, StringComparer.OrdinalIgnoreCase))
                 {
                     if (CASC.FileExists(file.Key) && (wowRoot == null || !wowRoot.IsUnknownFile(file.Key)))
-                        sw.WriteLine(file.Value);
+                    {
+                        if (wowRoot != null)
+                        {
+                            int fileDataId = wowRoot.GetFileDataIdByHash(file.Key);
+                            sw.WriteLine($"{fileDataId};{file.Value.FullName}");
+                        }
+                        else
+                        {
+                            sw.WriteLine(file.Value.FullName);
+                        }
+                    }
                 }
 
                 //var wr = CASC.Root as WowRootHandler;

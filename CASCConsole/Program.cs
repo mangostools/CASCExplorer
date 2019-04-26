@@ -246,7 +246,7 @@ namespace CASCConsole
 
             CASCConfig config = Settings.Default.OnlineMode
                 ? CASCConfig.LoadOnlineStorageConfig(Settings.Default.Product, "us")
-                : CASCConfig.LoadLocalStorageConfig(Settings.Default.StoragePath);
+                : CASCConfig.LoadLocalStorageConfig(Settings.Default.StoragePath, Settings.Default.Product);
 
             CASCHandler cascHandler = CASCHandler.OpenStorage(config, bgLoader);
 
@@ -254,10 +254,10 @@ namespace CASCConsole
             string pattern = args[1];
             string dest = args[2];
             LocaleFlags locale = (LocaleFlags)Enum.Parse(typeof(LocaleFlags), args[3]);
-            ContentFlags content = (ContentFlags)Enum.Parse(typeof(ContentFlags), args[4]);
+            bool overrideArchive = bool.Parse(args[4]);
 
-            cascHandler.Root.LoadListFile(Path.Combine(Environment.CurrentDirectory, "listfile.txt"), bgLoader);
-            CASCFolder root = cascHandler.Root.SetFlags(locale, content);
+            cascHandler.Root.LoadListFile(Path.Combine(Environment.CurrentDirectory, "listfile.csv"), bgLoader);
+            CASCFolder root = cascHandler.Root.SetFlags(locale, overrideArchive);
             //cascHandler.Root.MergeInstall(cascHandler.Install);
 
             Console.WriteLine("Loaded.");
@@ -267,7 +267,7 @@ namespace CASCConsole
             Console.WriteLine("    Pattern: {0}", pattern);
             Console.WriteLine("    Destination: {0}", dest);
             Console.WriteLine("    LocaleFlags: {0}", locale);
-            Console.WriteLine("    ContentFlags: {0}", content);
+            Console.WriteLine("    OverrideArchive: {0}", overrideArchive);
 
             if (mode == "pattern")
             {

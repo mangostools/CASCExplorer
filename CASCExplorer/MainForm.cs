@@ -74,14 +74,17 @@ namespace CASCExplorer
                 }
             }
 
-            openRecentStorageToolStripMenuItem.Enabled = Settings.Default.RecentStorages.Count > 0;
+            if (!RecentStorage.Load(Settings.Default.RecentStorages))
+                Settings.Default.RecentStorages = string.Empty;
 
-            foreach (string recentStorage in Settings.Default.RecentStorages)
+            openRecentStorageToolStripMenuItem.Enabled = RecentStorage.Storages.Count > 0;
+
+            foreach (var recentStorage in RecentStorage.Storages)
             {
-                openRecentStorageToolStripMenuItem.DropDownItems.Add(recentStorage);
+                openRecentStorageToolStripMenuItem.DropDownItems.Add(new ToolStripMenuItem($"{recentStorage.Path} ({recentStorage.Product})") { Tag = recentStorage });
             }
 
-            useLVToolStripMenuItem.Checked = (Settings.Default.ContentFlags & ContentFlags.LowViolence) != 0;
+            useLVToolStripMenuItem.Checked = Settings.Default.OverrideArchive;
             tsmShowPreview.Checked = Settings.Default.PreviewVisible;
         }
 
@@ -328,7 +331,7 @@ namespace CASCExplorer
         {
             useLVToolStripMenuItem.Checked = !useLVToolStripMenuItem.Checked;
 
-            viewHelper.ChangeContentFlags(useLVToolStripMenuItem.Checked);
+            viewHelper.SetOverrideArchive(useLVToolStripMenuItem.Checked);
         }
 
         private void Cleanup()
@@ -417,39 +420,34 @@ namespace CASCExplorer
 
         private void OpenStorage()
         {
-            if (storageFolderBrowserDialog.ShowDialog() != DialogResult.OK)
+            using (OpenStorageForm osf = new OpenStorageForm())
             {
-                MessageBox.Show("Please select storage folder!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
+                if (osf.ShowDialog() != DialogResult.OK)
+                    return;
+
+                viewHelper.OpenStorage(false, osf.StoragePath, osf.Product);
+
+                openRecentStorageToolStripMenuItem.Enabled = true;
+
+                if (RecentStorage.Storages.Find(s => s.Path.Equals(osf.StoragePath, StringComparison.OrdinalIgnoreCase) && s.Product == osf.Product) == null)
+                {
+                    RecentStorage storage = new RecentStorage() { Path = osf.StoragePath, Product = osf.Product };
+                    RecentStorage.Storages.Add(storage);
+                    Settings.Default.RecentStorages = RecentStorage.Save();
+                    openRecentStorageToolStripMenuItem.DropDownItems.Add(new ToolStripMenuItem($"{storage.Path} ({storage.Product})") { Tag = storage });
+                }
             }
-
-            string path = storageFolderBrowserDialog.SelectedPath;
-
-            if (!File.Exists(Path.Combine(path, ".build.info")))
-            {
-                MessageBox.Show("Invalid storage folder selected!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            viewHelper.OpenStorage(path, false);
-
-            openRecentStorageToolStripMenuItem.Enabled = true;
-            openRecentStorageToolStripMenuItem.DropDownItems.Add(path);
-
-            StringCollection recentStorages = Settings.Default.RecentStorages;
-            if (!recentStorages.Contains(path))
-                recentStorages.Add(path);
-            Settings.Default.RecentStorages = recentStorages;
         }
 
         private void openOnlineStorageToolStripMenuItem_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            viewHelper.OpenStorage((string)e.ClickedItem.Tag, true);
+            viewHelper.OpenStorage(true, null, (string)e.ClickedItem.Tag);
         }
 
         private void openRecentStorageToolStripMenuItem_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            viewHelper.OpenStorage(e.ClickedItem.Text, false);
+            RecentStorage storage = e.ClickedItem.Tag as RecentStorage;
+            viewHelper.OpenStorage(false, storage.Path, storage.Product);
         }
 
         private void closeStorageToolStripMenuItem_Click(object sender, EventArgs e)

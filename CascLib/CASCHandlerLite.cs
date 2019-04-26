@@ -41,7 +41,7 @@ namespace CASCLib
 
             Logger.WriteLine("CASCHandlerLite: loaded {0} root data", RootHandler.Count);
 
-            RootHandler.SetFlags(locale, ContentFlags.None, false);
+            RootHandler.SetFlags(locale, false, false);
 
             CDNIndexData = new Dictionary<MD5Hash, IndexEntry>(comparer);
 
@@ -130,7 +130,7 @@ namespace CASCLib
             return Open(locale, worker, config);
         }
 
-        public static CASCHandlerLite OpenLocalStorage(string basePath, LocaleFlags locale, BackgroundWorkerEx worker = null)
+        public static CASCHandlerLite OpenLocalStorage(string basePath, LocaleFlags locale, string product = null, BackgroundWorkerEx worker = null)
         {
             CASCConfig config = CASCConfig.LoadLocalStorageConfig(basePath);
 

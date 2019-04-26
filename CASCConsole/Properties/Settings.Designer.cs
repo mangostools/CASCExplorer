@@ -12,7 +12,7 @@ namespace CASCConsole.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.8.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.1.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -25,7 +25,19 @@ namespace CASCConsole.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("c:\\Games\\World of Warcraft Beta\\")]
+        [global::System.Configuration.DefaultSettingValueAttribute("enUS")]
+        public global::CASCLib.LocaleFlags Locale {
+            get {
+                return ((global::CASCLib.LocaleFlags)(this["Locale"]));
+            }
+            set {
+                this["Locale"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("d:\\Games\\World of Warcraft Public Test\\")]
         public string StoragePath {
             get {
                 return ((string)(this["StoragePath"]));
@@ -37,7 +49,7 @@ namespace CASCConsole.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool OnlineMode {
             get {
                 return ((bool)(this["OnlineMode"]));
@@ -49,25 +61,13 @@ namespace CASCConsole.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("wow")]
+        [global::System.Configuration.DefaultSettingValueAttribute("wowt")]
         public string Product {
             get {
                 return ((string)(this["Product"]));
             }
             set {
                 this["Product"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("enUS")]
-        public global::CASCLib.LocaleFlags Locale {
-            get {
-                return ((global::CASCLib.LocaleFlags)(this["Locale"]));
-            }
-            set {
-                this["Locale"] = value;
             }
         }
     }

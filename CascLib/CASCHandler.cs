@@ -94,9 +94,9 @@ namespace CASCLib
 
         public static CASCHandler OpenStorage(CASCConfig config, BackgroundWorkerEx worker = null) => Open(worker, config);
 
-        public static CASCHandler OpenLocalStorage(string basePath, BackgroundWorkerEx worker = null)
+        public static CASCHandler OpenLocalStorage(string basePath, string product = null, BackgroundWorkerEx worker = null)
         {
-            CASCConfig config = CASCConfig.LoadLocalStorageConfig(basePath);
+            CASCConfig config = CASCConfig.LoadLocalStorageConfig(basePath, product);
 
             return Open(worker, config);
         }

@@ -217,7 +217,7 @@ namespace CASCLib
             return config;
         }
 
-        public static CASCConfig LoadLocalStorageConfig(string basePath)
+        public static CASCConfig LoadLocalStorageConfig(string basePath, string product = null)
         {
             var config = new CASCConfig { OnlineMode = false, BasePath = basePath };
 
@@ -233,7 +233,7 @@ namespace CASCLib
                 config._BuildInfo = VerBarConfig.ReadVerBarConfig(buildInfoStream);
             }
 
-            Dictionary<string, string> bi = config.GetActiveBuild();
+            Dictionary<string, string> bi = config.GetActiveBuild(product);
 
             if (bi == null)
                 throw new Exception("Can't find active BuildInfoEntry");
@@ -245,6 +245,7 @@ namespace CASCLib
             config._Builds = new List<KeyValueConfig>();
 
             string buildKey = bi["BuildKey"];
+            //string buildKey = "5a05c58e28d0b2c3245954b6f4e2ae66";
             string buildCfgPath = Path.Combine(basePath, dataFolder, "config", buildKey.Substring(0, 2), buildKey.Substring(2, 2), buildKey);
             using (Stream stream = new FileStream(buildCfgPath, FileMode.Open))
             {
@@ -252,6 +253,7 @@ namespace CASCLib
             }
 
             string cdnKey = bi["CDNKey"];
+            //string cdnKey = "23d301e8633baaa063189ca9442b3088";
             string cdnCfgPath = Path.Combine(basePath, dataFolder, "config", cdnKey.Substring(0, 2), cdnKey.Substring(2, 2), cdnKey);
             using (Stream stream = new FileStream(cdnCfgPath, FileMode.Open))
             {
@@ -263,16 +265,17 @@ namespace CASCLib
             return config;
         }
 
-        private Dictionary<string, string> GetActiveBuild()
+        private Dictionary<string, string> GetActiveBuild(string product = null)
         {
             if (_BuildInfo == null)
                 return null;
 
             for (int i = 0; i < _BuildInfo.Count; ++i)
             {
-                if (_BuildInfo[i]["Active"] == "1")
+                var bi = _BuildInfo[i];
+                if (bi["Active"] == "1" && (product == null || bi["Product"] == product))
                 {
-                    return _BuildInfo[i];
+                    return bi;
                 }
             }
 
