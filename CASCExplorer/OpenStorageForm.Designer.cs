@@ -70,7 +70,8 @@
             this.wowProductComboBox.Items.AddRange(new object[] {
             "wow",
             "wowt",
-            "wowb"});
+            "wow_beta",
+            "wow_classic_beta"});
             this.wowProductComboBox.Location = new System.Drawing.Point(54, 58);
             this.wowProductComboBox.Name = "wowProductComboBox";
             this.wowProductComboBox.Size = new System.Drawing.Size(121, 21);
