@@ -54,7 +54,7 @@ namespace CASCLib
             {
                 rootEntry = entry.Value;
 
-                if ((rootEntry.LocaleFlags == locale || (rootEntry.LocaleFlags & locale) != LocaleFlags.None) && (rootEntry.ContentFlags & ContentFlags.LowViolence) == ContentFlags.None)
+                if ((rootEntry.LocaleFlags == locale || (rootEntry.LocaleFlags & locale) != LocaleFlags.None) && (rootEntry.ContentFlags & ContentFlags.Alternate) == ContentFlags.None)
                 {
                     if (EncodingHandler.GetEntry(rootEntry.MD5, out EncodingEntry enc))
                     {

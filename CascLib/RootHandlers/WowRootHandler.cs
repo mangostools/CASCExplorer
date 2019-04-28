@@ -39,15 +39,15 @@ namespace CASCLib
         F00000001 = 0x1,
         F00000002 = 0x2,
         F00000004 = 0x4,
-        F00000008 = 0x8, // added in 7.2.0.23436
-        F00000010 = 0x10, // added in 7.2.0.23436
-        F00000800 = 0x800,
-        LowViolence = 0x80, // many models have this flag
+        Windows = 0x8, // added in 7.2.0.23436
+        MacOS = 0x10, // added in 7.2.0.23436
+        Alternate = 0x80, // many chinese models have this flag
+        F00000800 = 0x800, // only seen on UpdatePlugin files
         Encrypted = 0x8000000, // encrypted may be?
-        F10000000 = 0x10000000, // doesn't have name hash?
-        F20000000 = 0x20000000, // added in 21737
+        NoNameHash = 0x10000000, // doesn't have name hash?
+        F20000000 = 0x20000000, // added in 21737, used for many cinematics
         Bundle = 0x40000000,
-        NoCompression = 0x80000000 // sounds have this flag
+        NotCompressed = 0x80000000 // sounds have this flag
     }
 
     public unsafe struct MD5Hash
@@ -120,7 +120,7 @@ namespace CASCLib
                 if (localeFlags == LocaleFlags.None)
                     throw new Exception("block.LocaleFlags == LocaleFlags.None");
 
-                if (contentFlags != ContentFlags.None && (contentFlags & (ContentFlags.F00000001 | ContentFlags.F00000008 | ContentFlags.F00000010 | ContentFlags.LowViolence | ContentFlags.NoCompression | ContentFlags.F10000000 | ContentFlags.F20000000)) == 0)
+                if (contentFlags != ContentFlags.None && (contentFlags & (ContentFlags.F00000001 | ContentFlags.Windows | ContentFlags.MacOS | ContentFlags.Alternate | ContentFlags.NotCompressed | ContentFlags.NoNameHash | ContentFlags.F20000000)) == 0)
                     throw new Exception("block.ContentFlags != ContentFlags.None");
 
                 RootEntry[] entries = new RootEntry[count];
@@ -242,7 +242,7 @@ namespace CASCLib
 
             if (rootInfosLocale.Count() > 1 && OverrideArchive)
             {
-                var rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.LowViolence) != ContentFlags.None);
+                var rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
 
                 if (rootInfosLocaleOverride.Any())
                     rootInfosLocale = rootInfosLocaleOverride;
@@ -348,7 +348,7 @@ namespace CASCLib
 
                 if (rootInfosLocale.Count() > 1 && OverrideArchive)
                 {
-                    var rootInfosLocaleOverride = rootInfosLocale.Where(re => ((re.ContentFlags & ContentFlags.LowViolence) != ContentFlags.None));
+                    var rootInfosLocaleOverride = rootInfosLocale.Where(re => ((re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None));
 
                     if (rootInfosLocaleOverride.Any())
                         rootInfosLocale = rootInfosLocaleOverride;
