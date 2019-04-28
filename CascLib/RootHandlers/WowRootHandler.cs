@@ -95,7 +95,9 @@ namespace CASCLib
 
             int numFilesTotal = 0, numFilesWithNameHash = 0, numFilesRead = 0;
 
-            if (magic == 0x4D465354)
+            const int TSFMMagic = 0x4D465354;
+
+            if (magic == TSFMMagic)
             {
                 numFilesTotal = stream.ReadInt32();
                 numFilesWithNameHash = stream.ReadInt32();
@@ -138,7 +140,7 @@ namespace CASCLib
 
                 ulong[] nameHashes = null;
 
-                if (magic == 0x4D465354)
+                if (magic == TSFMMagic)
                 {
                     for (var i = 0; i < count; ++i)
                         entries[i].MD5 = stream.Read<MD5Hash>();
