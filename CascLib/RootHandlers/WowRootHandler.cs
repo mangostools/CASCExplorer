@@ -218,7 +218,7 @@ namespace CASCLib
             if (!FileDataStoreReverse.TryGetValue(hash, out int fileDataId))
                 yield break;
 
-            if (!RootData.TryGetValue(FileDataStoreReverse[hash], out List<RootEntry> result))
+            if (!RootData.TryGetValue(fileDataId, out List<RootEntry> result))
                 yield break;
 
             foreach (var entry in result)

@@ -220,6 +220,12 @@ namespace CASCExplorer
                 if (unknownFolder == null)
                     return;
 
+                foreach (var kv in idToName)
+                {
+                    foreach (var fn in kv.Value)
+                        Logger.WriteLine($"{kv.Key};{fn}");
+                }
+
                 IEnumerable<CASCFile> files = CASCFolder.GetFiles(unknownFolder.Entries.Select(kv => kv.Value), null, true).ToList();
                 int numTotal = files.Count();
                 int numDone = 0;
