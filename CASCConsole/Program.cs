@@ -264,7 +264,7 @@ namespace CASCConsole
 
             Console.WriteLine("Extract params:");
             Console.WriteLine("    Mode: {0}", mode);
-            Console.WriteLine("    Pattern: {0}", pattern);
+            Console.WriteLine("    Pattern/Listfile: {0}", pattern);
             Console.WriteLine("    Destination: {0}", dest);
             Console.WriteLine("    LocaleFlags: {0}", locale);
             Console.WriteLine("    OverrideArchive: {0}", overrideArchive);
