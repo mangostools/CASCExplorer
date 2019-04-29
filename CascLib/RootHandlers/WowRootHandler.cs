@@ -42,11 +42,12 @@ namespace CASCLib
         Windows = 0x8, // added in 7.2.0.23436
         MacOS = 0x10, // added in 7.2.0.23436
         Alternate = 0x80, // many chinese models have this flag
+        F00000100 = 0x100, // apparently client doesn't load files with this flag
         F00000800 = 0x800, // only seen on UpdatePlugin files
         Encrypted = 0x8000000, // encrypted may be?
         NoNameHash = 0x10000000, // doesn't have name hash?
         F20000000 = 0x20000000, // added in 21737, used for many cinematics
-        Bundle = 0x40000000,
+        Bundle = 0x40000000, // some old overwatch hack
         NotCompressed = 0x80000000 // sounds have this flag
     }
 
