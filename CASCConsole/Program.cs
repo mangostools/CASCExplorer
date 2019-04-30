@@ -281,10 +281,12 @@ namespace CASCConsole
             }
             else if (mode == "listfile")
             {
-                var names = File.ReadLines(pattern);
+                char[] splitChar = new char[] { ';' };
+
+                var names = File.ReadLines(pattern).Select(s => s.Split(splitChar, 2)).Select(s => new { file = int.Parse(s[0]), name = s[1] });
 
                 foreach (var file in names)
-                    ExtractFile(cascHandler, file, dest);
+                    ExtractFile(cascHandler, file.name, dest);
             }
 
             Console.WriteLine("Extracted.");
