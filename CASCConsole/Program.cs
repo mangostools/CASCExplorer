@@ -229,7 +229,7 @@ namespace CASCConsole
             if (args.Length != 5)
             {
                 Console.WriteLine("Invalid arguments count!");
-                Console.WriteLine("Usage: CASCConsole <mode> <pattern|listfile> <destination> <localeFlags> <contentFlags>");
+                Console.WriteLine("Usage: CASCConsole <mode> <pattern|listfile> <destination> <localeFlags> <overrideArchive>");
                 return;
             }
 
@@ -276,34 +276,50 @@ namespace CASCConsole
                 foreach (var file in CASCFolder.GetFiles(root.Entries.Select(kv => kv.Value)))
                 {
                     if (wildcard.IsMatch(file.FullName))
-                        ExtractFile(cascHandler, file.FullName, dest);
+                        ExtractFile(cascHandler, 0, file.Hash, file.FullName, dest);
                 }
             }
             else if (mode == "listfile")
             {
-                char[] splitChar = new char[] { ';' };
+                if (cascHandler.Root is WowRootHandler)
+                {
+                    char[] splitChar = new char[] { ';' };
 
-                var names = File.ReadLines(pattern).Select(s => s.Split(splitChar, 2)).Select(s => new { file = int.Parse(s[0]), name = s[1] });
+                    var names = File.ReadLines(pattern).Select(s => s.Split(splitChar, 2)).Select(s => new { id = int.Parse(s[0]), name = s[1] });
 
-                foreach (var file in names)
-                    ExtractFile(cascHandler, file.name, dest);
+                    foreach (var file in names)
+                        ExtractFile(cascHandler, file.id, 0, file.name, dest);
+                }
+                else
+                {
+                    var names = File.ReadLines(pattern);
+
+                    foreach (var file in names)
+                        ExtractFile(cascHandler, 0, 0, file, dest);
+                }
             }
 
             Console.WriteLine("Extracted.");
         }
 
-        private static void ExtractFile(CASCHandler cascHandler, string file, string dest)
+        private static void ExtractFile(CASCHandler cascHandler, int id, ulong hash, string file, string dest)
         {
             Console.Write("Extracting '{0}'...", file);
 
             try
             {
-                cascHandler.SaveFileTo(file, dest);
+                if (id != 0)
+                    cascHandler.SaveFileTo(id, file, dest);
+                else if (hash != 0)
+                    cascHandler.SaveFileTo(hash, dest, file);
+                else
+                    cascHandler.SaveFileTo(file, dest);
+
                 Console.WriteLine(" Ok!");
             }
             catch (Exception exc)
             {
-                Console.WriteLine(" Error!");
+                Console.WriteLine($" Error ({exc.Message})!");
                 Logger.WriteLine(exc.Message);
             }
         }
