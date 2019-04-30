@@ -276,41 +276,39 @@ namespace CASCConsole
                 foreach (var file in CASCFolder.GetFiles(root.Entries.Select(kv => kv.Value)))
                 {
                     if (wildcard.IsMatch(file.FullName))
-                        ExtractFile(cascHandler, 0, file.Hash, file.FullName, dest);
+                        ExtractFile(cascHandler, file.Hash, file.FullName, dest);
                 }
             }
             else if (mode == "listfile")
             {
-                if (cascHandler.Root is WowRootHandler)
+                if (cascHandler.Root is WowRootHandler wowRoot)
                 {
                     char[] splitChar = new char[] { ';' };
 
                     var names = File.ReadLines(pattern).Select(s => s.Split(splitChar, 2)).Select(s => new { id = int.Parse(s[0]), name = s[1] });
 
                     foreach (var file in names)
-                        ExtractFile(cascHandler, file.id, 0, file.name, dest);
+                        ExtractFile(cascHandler, wowRoot.GetHashByFileDataId(file.id), file.name, dest);
                 }
                 else
                 {
                     var names = File.ReadLines(pattern);
 
                     foreach (var file in names)
-                        ExtractFile(cascHandler, 0, 0, file, dest);
+                        ExtractFile(cascHandler, 0, file, dest);
                 }
             }
 
             Console.WriteLine("Extracted.");
         }
 
-        private static void ExtractFile(CASCHandler cascHandler, int id, ulong hash, string file, string dest)
+        private static void ExtractFile(CASCHandler cascHandler, ulong hash, string file, string dest)
         {
             Console.Write("Extracting '{0}'...", file);
 
             try
             {
-                if (id != 0)
-                    cascHandler.SaveFileTo(id, file, dest);
-                else if (hash != 0)
+                if (hash != 0)
                     cascHandler.SaveFileTo(hash, dest, file);
                 else
                     cascHandler.SaveFileTo(file, dest);
