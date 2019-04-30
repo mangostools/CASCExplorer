@@ -202,6 +202,13 @@ namespace CASCLib
 
                     FileDataStore.Add(fileDataId, hash);
                     FileDataStoreReverse.Add(hash, fileDataId);
+
+                    if (nameHashes != null)
+                    {
+                        // generate our custom hash as well so we can still find file without calling GetHashByFileDataId in some weird cases
+                        ulong fileDataHash = FileDataHash.ComputeHash(fileDataId);
+                        FileDataStoreReverse.Add(fileDataHash, fileDataId);
+                    }
                 }
 
                 worker?.ReportProgress((int)(stream.BaseStream.Position / (float)stream.BaseStream.Length * 100));
