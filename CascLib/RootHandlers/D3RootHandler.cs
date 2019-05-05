@@ -188,7 +188,7 @@ namespace CASCLib
                     break;
             }
 
-            RootEntry entry = new RootEntry()
+            RootEntry entry = new RootEntry
             {
                 MD5 = e.MD5
             };

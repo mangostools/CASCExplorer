@@ -238,7 +238,7 @@ namespace CASCLib
                 }
                 else
                 {
-                    Logger.WriteLine($"CDNCache: error while downloading {url}: Status {exc.Status}, StatusCode {resp.StatusCode}");
+                    Logger.WriteLine($"CDNCache: error while downloading {url}: Status {exc.Status}, StatusCode {resp?.StatusCode}");
                     return false;
                 }
             }

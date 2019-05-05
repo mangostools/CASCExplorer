@@ -47,7 +47,7 @@ namespace CASCLib
         Encrypted = 0x8000000, // encrypted may be?
         NoNameHash = 0x10000000, // doesn't have name hash?
         F20000000 = 0x20000000, // added in 21737, used for many cinematics
-        Bundle = 0x40000000, // some old overwatch hack
+        Bundle = 0x40000000, // not related to wow, used as some old overwatch hack
         NotCompressed = 0x80000000 // sounds have this flag
     }
 
@@ -248,9 +248,14 @@ namespace CASCLib
 
             var rootInfosLocale = rootInfos.Where(re => (re.LocaleFlags & Locale) != LocaleFlags.None);
 
-            if (rootInfosLocale.Count() > 1 && OverrideArchive)
+            if (rootInfosLocale.Count() > 1)
             {
-                var rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
+                IEnumerable<RootEntry> rootInfosLocaleOverride;
+
+                if (OverrideArchive)
+                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
+                else
+                    rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) == ContentFlags.None);
 
                 if (rootInfosLocaleOverride.Any())
                     rootInfosLocale = rootInfosLocaleOverride;
@@ -354,9 +359,14 @@ namespace CASCLib
             {
                 var rootInfosLocale = rootEntry.Value.Where(re => (re.LocaleFlags & Locale) != LocaleFlags.None);
 
-                if (rootInfosLocale.Count() > 1 && OverrideArchive)
+                if (rootInfosLocale.Count() > 1)
                 {
-                    var rootInfosLocaleOverride = rootInfosLocale.Where(re => ((re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None));
+                    IEnumerable<RootEntry> rootInfosLocaleOverride;
+
+                    if (OverrideArchive)
+                        rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) != ContentFlags.None);
+                    else
+                        rootInfosLocaleOverride = rootInfosLocale.Where(re => (re.ContentFlags & ContentFlags.Alternate) == ContentFlags.None);
 
                     if (rootInfosLocaleOverride.Any())
                         rootInfosLocale = rootInfosLocaleOverride;
