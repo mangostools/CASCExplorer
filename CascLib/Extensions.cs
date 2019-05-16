@@ -111,7 +111,7 @@ namespace CASCLib
             long done = 0;
 
             // TODO: Span<byte>+stackalloc
-            byte[] buf = new byte[0x4000];
+            byte[] buf = new byte[0x10000];
 
             int count;
             do

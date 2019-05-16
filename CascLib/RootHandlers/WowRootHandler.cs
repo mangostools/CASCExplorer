@@ -36,7 +36,7 @@ namespace CASCLib
     public enum ContentFlags : uint
     {
         None = 0,
-        F00000001 = 0x1,
+        F00000001 = 0x1, // seen on *.wlm files
         F00000002 = 0x2,
         F00000004 = 0x4,
         Windows = 0x8, // added in 7.2.0.23436

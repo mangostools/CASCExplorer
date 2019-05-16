@@ -134,10 +134,7 @@ namespace CASCLib
 
         public static CASCConfig LoadOnlineStorageConfig(string product, string region, bool useCurrentBuild = false)
         {
-            var config = new CASCConfig { OnlineMode = true };
-
-            config.Region = region;
-            config.Product = product;
+            var config = new CASCConfig { OnlineMode = true, Region = region, Product = product };
 
             using (var ribbit = new RibbitClient("us"))
             using (var cdnsStream = ribbit.GetAsStream($"v1/products/{product}/cdns"))
@@ -219,7 +216,7 @@ namespace CASCLib
 
         public static CASCConfig LoadLocalStorageConfig(string basePath, string product = null)
         {
-            var config = new CASCConfig { OnlineMode = false, BasePath = basePath };
+            var config = new CASCConfig { OnlineMode = false, BasePath = basePath, Product = product };
 
             config.GameType = CASCGame.DetectLocalGame(basePath);
 
@@ -288,7 +285,7 @@ namespace CASCLib
 
         public int ActiveBuild { get; set; }
 
-        public string BuildName { get { return GetActiveBuild()?["Version"] ?? _VersionsData[_versionsIndex]["VersionsName"]; } }
+        public string BuildName { get { return GetActiveBuild(Product)?["Version"] ?? _VersionsData[_versionsIndex]["VersionsName"]; } }
 
         public string Product { get; private set; }
 

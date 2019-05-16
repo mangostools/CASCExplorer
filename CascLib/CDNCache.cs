@@ -208,13 +208,13 @@ namespace CASCLib
 
             DateTime startTime = DateTime.Now;
 
-            long fileSize = GetFileSize(cdnPath);
+            //long fileSize = GetFileSize(cdnPath);
 
-            if (fileSize == -1)
-                return false;
+            //if (fileSize == -1)
+            //    return false;
 
             HttpWebRequest req = WebRequest.CreateHttp(url);
-            req.AddRange(0, fileSize - 1);
+            //req.AddRange(0, fileSize - 1);
 
             HttpWebResponse resp;
 
@@ -224,8 +224,8 @@ namespace CASCLib
                 using (Stream stream = resp.GetResponseStream())
                 using (Stream fs = new FileStream(path, FileMode.Create, FileAccess.Write))
                 {
-                    CacheFile(resp, Path.GetFileName(path));
                     stream.CopyToStream(fs, resp.ContentLength);
+                    CacheFile(resp, Path.GetFileName(path));
                 }
             }
             catch (WebException exc)
