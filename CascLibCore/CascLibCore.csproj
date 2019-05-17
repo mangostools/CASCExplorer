@@ -9,7 +9,9 @@
 
   <ItemGroup>
     <Compile Include="..\CascLib\ArmadilloCrypt.cs" Link="ArmadilloCrypt.cs" />
-    <Compile Include="..\CascLib\BackgroundWorkerEx.cs" Link="BackgroundWorkerEx.cs" />
+    <Compile Include="..\CascLib\BackgroundWorkerEx.cs" Link="BackgroundWorkerEx.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="..\CascLib\BLTEStream.cs" Link="BLTEStream.cs" />
     <Compile Include="..\CascLib\CASCConfig.cs" Link="CASCConfig.cs" />
     <Compile Include="..\CascLib\CASCEntry.cs" Link="CASCEntry.cs" />
@@ -48,7 +50,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.DotNet.Analyzers.Compatibility" Version="0.2.12-alpha" />
-    <PackageReference Include="MimeKitLite" Version="2.1.4" />
+    <PackageReference Include="MimeKitLite" Version="2.1.5.1" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.2" />
   </ItemGroup>
