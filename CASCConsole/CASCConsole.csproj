@@ -60,8 +60,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CascLib\CascLib.csproj">
-      <Project>{e08e1e48-6585-4137-8405-661c62c10713}</Project>
+    <ProjectReference Include="..\CascLib\CascLib\CascLib.csproj">
+      <Project>{d91852fa-206f-4790-87f0-345248e4a588}</Project>
       <Name>CascLib</Name>
     </ProjectReference>
   </ItemGroup>

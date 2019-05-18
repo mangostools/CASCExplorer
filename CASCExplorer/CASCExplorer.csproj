@@ -188,13 +188,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CascLibCore\CascLibCore.csproj">
-      <Project>{d6ee8d24-722f-488e-bd31-f01f765010b9}</Project>
-      <Name>CascLibCore</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CASCExplorer.ViewPlugin\CASCExplorer.ViewPlugin.csproj">
       <Project>{63C32AC8-2EE2-4DB7-99C5-84FD815AADC3}</Project>
       <Name>CASCExplorer.ViewPlugin</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CascLib\CascLib\CascLib.csproj">
+      <Project>{d91852fa-206f-4790-87f0-345248e4a588}</Project>
+      <Name>CascLib</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
