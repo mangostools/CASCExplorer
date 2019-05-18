@@ -3,4 +3,4 @@
 	url = https://github.com/WoW-Tools/SereniaBLPLib.git
 [submodule "CascLib"]
 	path = CascLib
-	url = git@github.com:WoW-Tools/CascLib.git
+	url = https://github.com/WoW-Tools/CascLib.git
