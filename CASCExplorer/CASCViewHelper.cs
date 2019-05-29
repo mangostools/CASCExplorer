@@ -242,22 +242,23 @@ namespace CASCExplorer
                     if (idToName.TryGetValue(wowRoot.GetFileDataIdByHash(unknownFile.Hash), out List<string> name))
                     {
                         if (name.Count == 1)
-                            unknownFile.FullName = name[0];
+                            unknownFile.FullName = name[0].Replace("\"", "");
                         else
                         {
                             unknownFolder.Entries.Remove(unknownFile.Name);
 
                             foreach (var file in name)
                             {
+                                string filex = file.Replace("\"", "");
                                 //Logger.WriteLine(file);
 
-                                string[] parts = file.Split(PathDelimiters);
+                                string[] parts = filex.Split(PathDelimiters);
 
                                 string entryName = parts[parts.Length - 1];
 
                                 ulong filehash = unknownFile.Hash;
 
-                                CASCFile entry = new CASCFile(filehash, file);
+                                CASCFile entry = new CASCFile(filehash, filex);
                                 CASCFile.Files[filehash] = entry;
 
                                 unknownFolder.Entries[entryName] = entry;
