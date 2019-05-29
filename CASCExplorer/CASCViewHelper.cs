@@ -186,8 +186,7 @@ namespace CASCExplorer
 
                             foreach (var row in sk)
                             {
-                                string name = skn.GetRow(row.Key).GetField<string>(0).Replace(':', '_');
-                                //string name = row.Value.GetField<string>(0).Replace(':', '_');
+                                string name = skn.GetRow(row.Key).GetField<string>(0).Replace(':', '_').Replace("\"", "");
 
                                 int type = row.Value.GetField<byte>(6);
 
@@ -242,23 +241,22 @@ namespace CASCExplorer
                     if (idToName.TryGetValue(wowRoot.GetFileDataIdByHash(unknownFile.Hash), out List<string> name))
                     {
                         if (name.Count == 1)
-                            unknownFile.FullName = name[0].Replace("\"", "");
+                            unknownFile.FullName = name[0];
                         else
                         {
                             unknownFolder.Entries.Remove(unknownFile.Name);
 
                             foreach (var file in name)
                             {
-                                string filex = file.Replace("\"", "");
                                 //Logger.WriteLine(file);
 
-                                string[] parts = filex.Split(PathDelimiters);
+                                string[] parts = file.Split(PathDelimiters);
 
                                 string entryName = parts[parts.Length - 1];
 
                                 ulong filehash = unknownFile.Hash;
 
-                                CASCFile entry = new CASCFile(filehash, filex);
+                                CASCFile entry = new CASCFile(filehash, file);
                                 CASCFile.Files[filehash] = entry;
 
                                 unknownFolder.Entries[entryName] = entry;
