@@ -58,14 +58,7 @@ namespace CASCLib
 
     public abstract class ClientDBRow
     {
-        private FieldInfo[] Fields;
-
         public abstract int GetId();
-
-        public ClientDBRow()
-        {
-            Fields = GetType().GetFields(BindingFlags.Public | BindingFlags.Instance).OrderBy(f => f.MetadataToken).ToArray();
-        }
 
         public void Read<T>(IFieldCache[] fields, T entry, BitReader r, long recordsOffset, Dictionary<long, string> stringsTable, FieldMetaData[] fieldMeta, ColumnMetaData[] columnMeta, Value32[][] palletData, Dictionary<int, Value32>[] commonData, int id, int refId, bool isSparse = false) where T : ClientDBRow
         {
@@ -156,15 +149,9 @@ namespace CASCLib
             }
         }
 
-        public T Clone<T>() where T : ClientDBRow
-        {
-            return (T)MemberwiseClone();
-        }
+        public T Clone<T>() where T : ClientDBRow => (T)MemberwiseClone();
 
-        public void SetId(int id)
-        {
-            GetType().GetField("Id").SetValue(this, id);
-        }
+        public void SetId(int id) => GetType().GetField("Id").SetValue(this, id);
     }
 
     public interface IDB2Row
