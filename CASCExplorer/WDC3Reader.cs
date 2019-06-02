@@ -111,7 +111,8 @@ namespace CASCLib
             T row = new T();
             m_data.Position = 0;
             m_data.Offset = m_dataOffset;
-            row.Read(m_data, m_recordsOffset, m_stringsTable, m_reader.Meta, m_reader.ColumnMeta, m_reader.PalletData, m_reader.CommonData, m_refId, m_idRead ? -1 : Id, m_isSparse);
+            IFieldCache[] fields = FieldsCache<T>.Cache;
+            row.Read(fields, row, m_data, m_recordsOffset, m_stringsTable, m_reader.Meta, m_reader.ColumnMeta, m_reader.PalletData, m_reader.CommonData, m_refId, m_idRead ? -1 : Id, m_isSparse);
             return row;
         }
     }
