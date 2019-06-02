@@ -13,7 +13,6 @@ namespace CASCLib
         private int m_dataOffset;
         private int m_recordsOffset;
         private bool m_isSparse;
-        private bool m_idRead;
         private int m_refId;
         private Dictionary<long, string> m_stringsTable;
 
@@ -39,8 +38,6 @@ namespace CASCLib
                 m_data.Position = reader.ColumnMeta[idFieldIndex].RecordOffset;
 
                 Id = FieldReader.GetFieldValue<int>(0, m_data, reader.Meta[idFieldIndex], reader.ColumnMeta[idFieldIndex], reader.PalletData[idFieldIndex], reader.CommonData[idFieldIndex]);
-
-                m_idRead = true;
             }
         }
 
@@ -101,20 +98,7 @@ namespace CASCLib
             return (T)value;
         }
 
-        public IDB2Row Clone()
-        {
-            return (IDB2Row)MemberwiseClone();
-        }
-
-        public T As<T>() where T : ClientDBRow, new()
-        {
-            T row = new T();
-            m_data.Position = 0;
-            m_data.Offset = m_dataOffset;
-            IFieldCache[] fields = FieldsCache<T>.Cache;
-            row.Read(fields, row, m_data, m_recordsOffset, m_stringsTable, m_reader.Meta, m_reader.ColumnMeta, m_reader.PalletData, m_reader.CommonData, m_refId, m_idRead ? -1 : Id, m_isSparse);
-            return row;
-        }
+        public IDB2Row Clone() => (IDB2Row)MemberwiseClone();
     }
 
     public class WDC3Reader : DB2Reader

@@ -158,7 +158,6 @@ namespace CASCLib
     {
         int Id { get; set; }
         T GetField<T>(int fieldIndex, int arrayIndex = -1);
-        T As<T>() where T : ClientDBRow, new();
         IDB2Row Clone();
     }
 
