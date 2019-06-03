@@ -202,7 +202,7 @@ namespace CASCLib
                     if (sections[sectionIndex].NumSparseRecords > 0 && sections[sectionIndex].NumRecords != sections[sectionIndex].NumSparseRecords)
                         throw new Exception("sections[sectionIndex].NumSparseRecords > 0 && sections[sectionIndex].NumRecords != sections[sectionIndex].NumSparseRecords");
 
-                    IFieldCache[] fieldCache = FieldsCache<T>.Cache;
+                    FieldCache[] fieldCache = FieldsCache<T>.Cache;
 
                     if (hasIndex)
                         fieldCache[0].IsIndex = true;
