@@ -22,22 +22,20 @@ namespace CASCLib
 
     public interface IFieldCache
     {
-        string Name { get; }
         FieldInfo Field { get; }
-        int ArraySize { get; }
+        bool IsIndex { get; set; }
     }
 
     public class FieldCache<T, V> : IFieldCache
     {
-        public string Name { get; }
         public FieldInfo Field { get; }
         public int ArraySize { get; }
+        public bool IsIndex { get; set; }
         public readonly Action<T, V> Setter;
         public readonly Func<T, V> Getter;
 
         public FieldCache(FieldInfo field)
         {
-            Name = field.Name;
             Field = field;
             bool isArray = field.FieldType.IsArray;
 
@@ -46,7 +44,7 @@ namespace CASCLib
                 ArraySizeAttribute atr = (ArraySizeAttribute)field.GetCustomAttribute(typeof(ArraySizeAttribute));
 
                 if (atr == null)
-                    throw new Exception(typeof(T).Name + "." + Name + " missing ArraySizeAttribute");
+                    throw new Exception(typeof(T).Name + "." + field.Name + " missing ArraySizeAttribute");
 
                 ArraySize = atr.Size;
             }
@@ -66,7 +64,7 @@ namespace CASCLib
 
             foreach (var f in fields)
             {
-                if (f.Name == "Id" && id != -1)
+                if (f.IsIndex && id != -1)
                 {
                     ((FieldCache<T, int>)f).Setter(entry, id);
                     continue;
@@ -112,45 +110,45 @@ namespace CASCLib
                         c1.Setter(entry, isSparse ? r.ReadCString() : stringsTable[(recordsOffset + r.Offset + (r.Position >> 3)) + FieldReader.GetFieldValue<int>(GetId(), r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex])]);
                         break;
                     case FieldCache<T, float[]> c1:
-                        c1.Setter(entry, FieldReader.GetFieldValueArray<float>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], f.ArraySize));
+                        c1.Setter(entry, FieldReader.GetFieldValueArray<float>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], c1.ArraySize));
                         break;
                     case FieldCache<T, long[]> c1:
-                        c1.Setter(entry, FieldReader.GetFieldValueArray<long>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], f.ArraySize));
+                        c1.Setter(entry, FieldReader.GetFieldValueArray<long>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], c1.ArraySize));
                         break;
                     case FieldCache<T, ulong[]> c1:
-                        c1.Setter(entry, FieldReader.GetFieldValueArray<ulong>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], f.ArraySize));
+                        c1.Setter(entry, FieldReader.GetFieldValueArray<ulong>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], c1.ArraySize));
                         break;
                     case FieldCache<T, int[]> c1:
-                        c1.Setter(entry, FieldReader.GetFieldValueArray<int>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], f.ArraySize));
+                        c1.Setter(entry, FieldReader.GetFieldValueArray<int>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], c1.ArraySize));
                         break;
                     case FieldCache<T, uint[]> c1:
-                        c1.Setter(entry, FieldReader.GetFieldValueArray<uint>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], f.ArraySize));
+                        c1.Setter(entry, FieldReader.GetFieldValueArray<uint>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], c1.ArraySize));
                         break;
                     case FieldCache<T, short[]> c1:
-                        c1.Setter(entry, FieldReader.GetFieldValueArray<short>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], f.ArraySize));
+                        c1.Setter(entry, FieldReader.GetFieldValueArray<short>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], c1.ArraySize));
                         break;
                     case FieldCache<T, ushort[]> c1:
-                        c1.Setter(entry, FieldReader.GetFieldValueArray<ushort>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], f.ArraySize));
+                        c1.Setter(entry, FieldReader.GetFieldValueArray<ushort>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], c1.ArraySize));
                         break;
                     case FieldCache<T, byte[]> c1:
-                        c1.Setter(entry, FieldReader.GetFieldValueArray<byte>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], f.ArraySize));
+                        c1.Setter(entry, FieldReader.GetFieldValueArray<byte>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], c1.ArraySize));
                         break;
                     case FieldCache<T, sbyte[]> c1:
-                        c1.Setter(entry, FieldReader.GetFieldValueArray<sbyte>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], f.ArraySize));
+                        c1.Setter(entry, FieldReader.GetFieldValueArray<sbyte>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], c1.ArraySize));
                         break;
                     case FieldCache<T, string[]> c1:
-                        c1.Setter(entry, FieldReader.GetFieldValueStringsArray(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], stringsTable, isSparse, recordsOffset, f.ArraySize));
+                        c1.Setter(entry, FieldReader.GetFieldValueStringsArray(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], stringsTable, isSparse, recordsOffset, c1.ArraySize));
                         break;
                     default:
-                        throw new Exception("Unhandled DbcTable type: " + f.Name);
+                        throw new Exception($"Unhandled ClientDBRow type: {f.Field.FieldType.FullName} in {f.Field.DeclaringType.FullName}.{f.Field.Name}");
                 }
 
                 fieldIndex++;
             }
         }
 
-        public void SetId(int id) => GetType().GetField("Id").SetValue(this, id);
-        public T GetField<T>(int fieldIndex, int arrayIndex = -1) => throw new NotImplementedException();
+        public void SetId(int id) => throw new InvalidOperationException(nameof(SetId));
+        public T GetField<T>(int fieldIndex, int arrayIndex = -1) => throw new InvalidOperationException(nameof(GetField));
         public IDB2Row Clone() => (IDB2Row)MemberwiseClone();
     }
 

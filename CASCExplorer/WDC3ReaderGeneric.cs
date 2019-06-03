@@ -204,6 +204,11 @@ namespace CASCLib
 
                     IFieldCache[] fieldCache = FieldsCache<T>.Cache;
 
+                    if (hasIndex)
+                        fieldCache[0].IsIndex = true;
+                    else
+                        fieldCache[IdFieldIndex].IsIndex = true;
+
                     for (int i = 0; i < sections[sectionIndex].NumRecords; ++i)
                     {
                         T rec = new T();
@@ -225,10 +230,12 @@ namespace CASCLib
                             Console.Write("\r{0} records read", i);
                     }
 
+                    FieldCache<T, int> idField = (FieldCache<T, int>)(hasIndex ? fieldCache[0] : fieldCache[IdFieldIndex]);
+
                     foreach (var copyRow in copyData)
                     {
                         T rec = (T)_Records[copyRow.Value].Clone();
-                        rec.SetId(copyRow.Key);
+                        idField.Setter(rec, copyRow.Key);
                         _Records.Add(copyRow.Key, rec);
                     }
 
