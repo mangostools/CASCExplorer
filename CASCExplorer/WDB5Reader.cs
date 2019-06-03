@@ -6,17 +6,19 @@ using System.Text;
 
 namespace CASCLib
 {
-    public class DB5Row : IDB2Row
+    public class WDB5Row : IDB2Row
     {
         private byte[] m_data;
         private WDB5Reader m_reader;
         private Dictionary<long, string> m_stringsTable;
+        private int m_id;
 
-        public int Id { get; set; }
+        public int GetId() => m_id;
+        public void SetId(int id) => m_id = id;
 
         public byte[] Data => m_data;
 
-        public DB5Row(WDB5Reader reader, byte[] data, Dictionary<long, string> stringsTable)
+        public WDB5Row(WDB5Reader reader, byte[] data, Dictionary<long, string> stringsTable)
         {
             m_reader = reader;
             m_data = data;
@@ -101,7 +103,7 @@ namespace CASCLib
         public IDB2Row Clone() => (IDB2Row)MemberwiseClone();
     }
 
-    public class WDB5Reader : DB2Reader
+    public class WDB5Reader : DB2Reader<WDB5Row>
     {
         private const int HeaderSize = 48;
         private const uint DB5FmtSig = 0x35424457;          // WDB5
@@ -154,11 +156,11 @@ namespace CASCLib
 
                 Dictionary<long, string> stringsTable = new Dictionary<long, string>();
 
-                DB5Row[] m_rows = new DB5Row[RecordsCount];
+                WDB5Row[] m_rows = new WDB5Row[RecordsCount];
 
                 for (int i = 0; i < RecordsCount; i++)
                 {
-                    m_rows[i] = new DB5Row(this, reader.ReadBytes(RecordSize), stringsTable);
+                    m_rows[i] = new WDB5Row(this, reader.ReadBytes(RecordSize), stringsTable);
                 }
 
                 for (int i = 0; i < StringTableSize;)
@@ -182,7 +184,7 @@ namespace CASCLib
                     {
                         int id = reader.ReadInt32();
                         var row = m_rows[i];
-                        row.Id = id;
+                        row.SetId(id);
                         _Records[id] = row;
                     }
                 }
@@ -192,7 +194,7 @@ namespace CASCLib
                     {
                         int id = m_rows[i].Data.Skip(m_meta[idIndex].Offset).Take((32 - m_meta[idIndex].Bits) >> 3).Select((b, k) => b << k * 8).Sum();
                         var row = m_rows[i];
-                        row.Id = id;
+                        row.SetId(id);
                         _Records[id] = row;
                     }
                 }
@@ -206,7 +208,9 @@ namespace CASCLib
                         int newId = reader.ReadInt32();
                         int oldId = reader.ReadInt32();
 
-                        _Records[newId] = _Records[oldId];
+                        WDB5Row rec = (WDB5Row)_Records[oldId].Clone();
+                        rec.SetId(newId);
+                        _Records.Add(newId, rec);
                     }
                 }
             }

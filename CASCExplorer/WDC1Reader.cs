@@ -10,11 +10,13 @@ namespace CASCLib
     public class WDC1Row : IDB2Row
     {
         private BitReader m_data;
-        private DB2Reader m_reader;
+        private WDC1Reader m_reader;
         private int m_dataOffset;
         private int m_refId;
+        private int m_id;
 
-        public int Id { get; set; }
+        public int GetId() => m_id;
+        public void SetId(int id) => m_id = id;
 
         private FieldMetaData[] m_fieldMeta;
         private ColumnMetaData[] m_columnMeta;
@@ -22,7 +24,7 @@ namespace CASCLib
         private Dictionary<int, Value32>[] m_commonData;
         private Dictionary<long, string> m_stringsTable;
 
-        public WDC1Row(DB2Reader reader, BitReader data, int id, int refId, Dictionary<long, string> stringsTable)
+        public WDC1Row(WDC1Reader reader, BitReader data, int id, int refId, Dictionary<long, string> stringsTable)
         {
             m_reader = reader;
             m_data = data;
@@ -37,14 +39,14 @@ namespace CASCLib
             m_stringsTable = stringsTable;
 
             if (id != -1)
-                Id = id;
+                m_id = id;
             else
             {
                 int idFieldIndex = reader.IdFieldIndex;
 
                 m_data.Position = m_columnMeta[idFieldIndex].RecordOffset;
 
-                Id = FieldReader.GetFieldValue<int>(0, m_data, m_fieldMeta[idFieldIndex], m_columnMeta[idFieldIndex], m_palletData[idFieldIndex], m_commonData[idFieldIndex]);
+                m_id = FieldReader.GetFieldValue<int>(0, m_data, m_fieldMeta[idFieldIndex], m_columnMeta[idFieldIndex], m_palletData[idFieldIndex], m_commonData[idFieldIndex]);
             }
         }
 
@@ -97,7 +99,7 @@ namespace CASCLib
             else
             {
                 if (simpleReaders.TryGetValue(typeof(T), out var reader))
-                    value = reader(Id, m_data, m_fieldMeta[fieldIndex], m_columnMeta[fieldIndex], m_palletData[fieldIndex], m_commonData[fieldIndex], m_stringsTable);
+                    value = reader(m_id, m_data, m_fieldMeta[fieldIndex], m_columnMeta[fieldIndex], m_palletData[fieldIndex], m_commonData[fieldIndex], m_stringsTable);
                 else
                     throw new Exception("Unhandled field type: " + typeof(T).Name);
             }
@@ -108,7 +110,7 @@ namespace CASCLib
         public IDB2Row Clone() => (IDB2Row)MemberwiseClone();
     }
 
-    public class WDC1Reader : DB2Reader
+    public class WDC1Reader : DB2Reader<WDC1Row>
     {
         private const int HeaderSize = 84;
         private const uint WDC1FmtSig = 0x31434457; // WDC1
@@ -263,12 +265,12 @@ namespace CASCLib
 
                     bool hasRef = refData.Entries.TryGetValue(i, out int refId);
 
-                    IDB2Row rec = new WDC1Row(this, bitReader, indexDataSize != 0 ? indexData[i] : -1, hasRef ? refId : -1, stringsTable);
+                    WDC1Row rec = new WDC1Row(this, bitReader, indexDataSize != 0 ? indexData[i] : -1, hasRef ? refId : -1, stringsTable);
 
                     if (indexDataSize != 0)
                         _Records.Add(indexData[i], rec);
                     else
-                        _Records.Add(rec.Id, rec);
+                        _Records.Add(rec.GetId(), rec);
 
                     if (i % 1000 == 0)
                         Console.Write("\r{0} records read", i);
@@ -276,8 +278,8 @@ namespace CASCLib
 
                 foreach (var copyRow in copyData)
                 {
-                    IDB2Row rec = _Records[copyRow.Value].Clone();
-                    rec.Id = copyRow.Key;
+                    WDC1Row rec = (WDC1Row)_Records[copyRow.Value].Clone();
+                    rec.SetId(copyRow.Key);
                     _Records.Add(copyRow.Key, rec);
                 }
             }

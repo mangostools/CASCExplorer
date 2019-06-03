@@ -56,7 +56,7 @@ namespace CASCLib
         }
     }
 
-    public abstract class ClientDBRow
+    public abstract class ClientDBRow : IDB2Row
     {
         public abstract int GetId();
 
@@ -149,19 +149,20 @@ namespace CASCLib
             }
         }
 
-        public T Clone<T>() where T : ClientDBRow => (T)MemberwiseClone();
-
         public void SetId(int id) => GetType().GetField("Id").SetValue(this, id);
+        public T GetField<T>(int fieldIndex, int arrayIndex = -1) => throw new NotImplementedException();
+        public IDB2Row Clone() => (IDB2Row)MemberwiseClone();
     }
 
     public interface IDB2Row
     {
-        int Id { get; set; }
+        int GetId();
+        void SetId(int id);
         T GetField<T>(int fieldIndex, int arrayIndex = -1);
         IDB2Row Clone();
     }
 
-    public abstract class DB2Reader : IEnumerable<KeyValuePair<int, IDB2Row>>
+    public abstract class DB2Reader<T> : IEnumerable<KeyValuePair<int, T>> where T : IDB2Row
     {
         public int RecordsCount { get; protected set; }
         public int FieldsCount { get; protected set; }
@@ -185,28 +186,18 @@ namespace CASCLib
         protected Dictionary<int, Value32>[] m_commonData;
         public Dictionary<int, Value32>[] CommonData => m_commonData;
 
-        protected Dictionary<int, IDB2Row> _Records = new Dictionary<int, IDB2Row>();
+        protected SortedDictionary<int, T> _Records = new SortedDictionary<int, T>();
 
-        public bool HasRow(int id)
-        {
-            return _Records.ContainsKey(id);
-        }
+        public bool HasRow(int id) => _Records.ContainsKey(id);
 
-        public IDB2Row GetRow(int id)
+        public T GetRow(int id)
         {
-            _Records.TryGetValue(id, out IDB2Row row);
+            _Records.TryGetValue(id, out T row);
             return row;
         }
 
-        public IEnumerator<KeyValuePair<int, IDB2Row>> GetEnumerator()
-        {
-            return _Records.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _Records.GetEnumerator();
-        }
+        public IEnumerator<KeyValuePair<int, T>> GetEnumerator() => _Records.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
     public struct FieldMetaData

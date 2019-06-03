@@ -6,13 +6,11 @@ using System.Text;
 
 namespace CASCLib
 {
-    public class WDC3ReaderGeneric<T> : DB2Reader where T : ClientDBRow, new()
+    public class WDC3ReaderGeneric<T> : DB2Reader<T> where T : ClientDBRow, IDB2Row, new()
     {
         private const int HeaderSize = 72;
         private const uint WDC3FmtSig = 0x33434457; // WDC3
         private Func<ulong, bool> hasTactKeyFunc;
-
-        protected new SortedDictionary<int, T> _Records = new SortedDictionary<int, T>();
 
         public WDC3ReaderGeneric(string dbcFile, Func<ulong, bool> hasTactKey = null) : this(new FileStream(dbcFile, FileMode.Open), hasTactKey) { }
 
@@ -229,7 +227,7 @@ namespace CASCLib
 
                     foreach (var copyRow in copyData)
                     {
-                        T rec = _Records[copyRow.Value].Clone<T>();
+                        T rec = (T)_Records[copyRow.Value].Clone();
                         rec.SetId(copyRow.Key);
                         _Records.Add(copyRow.Key, rec);
                     }

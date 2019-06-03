@@ -6,13 +6,15 @@ using System.Text;
 
 namespace CASCLib
 {
-    public class DB6Row : IDB2Row
+    public class WDB6Row : IDB2Row
     {
         private byte[] m_data;
         private WDB6Reader m_reader;
         private Dictionary<long, string> m_stringTable;
+        private int m_id;
 
-        public int Id { get; set; }
+        public int GetId() => m_id;
+        public void SetId(int id) => m_id = id;
 
         public byte[] Data
         {
@@ -20,7 +22,7 @@ namespace CASCLib
             set => m_data = value;
         }
 
-        public DB6Row(WDB6Reader reader, byte[] data, Dictionary<long, string> stringTable)
+        public WDB6Row(WDB6Reader reader, byte[] data, Dictionary<long, string> stringTable)
         {
             m_reader = reader;
             m_data = data;
@@ -105,7 +107,7 @@ namespace CASCLib
         public IDB2Row Clone() => (IDB2Row)MemberwiseClone();
     }
 
-    public class WDB6Reader : DB2Reader
+    public class WDB6Reader : DB2Reader<WDB6Row>
     {
         private const int HeaderSize = 56;
         private const uint DB6FmtSig = 0x36424457;          // WDB6
@@ -161,11 +163,11 @@ namespace CASCLib
 
                 Dictionary<long, string> m_stringsTable = new Dictionary<long, string>();
 
-                DB6Row[] m_rows = new DB6Row[RecordsCount];
+                WDB6Row[] m_rows = new WDB6Row[RecordsCount];
 
                 for (int i = 0; i < RecordsCount; i++)
                 {
-                    m_rows[i] = new DB6Row(this, reader.ReadBytes(RecordSize), m_stringsTable);
+                    m_rows[i] = new WDB6Row(this, reader.ReadBytes(RecordSize), m_stringsTable);
                 }
 
                 for (int i = 0; i < StringTableSize;)
@@ -189,7 +191,7 @@ namespace CASCLib
                     {
                         int id = reader.ReadInt32();
                         var row = m_rows[i];
-                        row.Id = id;
+                        row.SetId(id);
                         _Records[id] = row;
                     }
                 }
@@ -199,7 +201,7 @@ namespace CASCLib
                     {
                         int id = m_rows[i].Data.Skip(m_meta[idIndex].Offset).Take((32 - m_meta[idIndex].Bits) >> 3).Select((b, k) => b << k * 8).Sum();
                         var row = m_rows[i];
-                        row.Id = id;
+                        row.SetId(id);
                         _Records[id] = row;
                     }
                 }
@@ -213,7 +215,9 @@ namespace CASCLib
                         int newId = reader.ReadInt32();
                         int oldId = reader.ReadInt32();
 
-                        _Records[newId] = _Records[oldId];
+                        WDB6Row rec = (WDB6Row)_Records[oldId].Clone();
+                        rec.SetId(newId);
+                        _Records.Add(newId, rec);
                     }
                 }
 
@@ -280,7 +284,7 @@ namespace CASCLib
                             if (col.Count == 0)
                                 continue;
 
-                            DB6Row rowRef = (DB6Row)_Records[row];
+                            WDB6Row rowRef = _Records[row];
                             byte[] rowData = rowRef.Data;
 
                             byte[] data = col.ContainsKey(row) ? col[row] : new byte[col.First().Value.Length];
