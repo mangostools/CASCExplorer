@@ -221,13 +221,13 @@ namespace CASCLib
 
                             if (indexData != null && !temp.Contains(sparseEntries[i].Offset))
                             {
+                                temp.Add(sparseEntries[i].Offset);
+
                                 if (currentId != indexData[uniqueIndex])
                                     throw new Exception("currentId != indexData[uniqueIndex]");
 
                                 uniqueIndex++;
                             }
-
-                            temp.Add(sparseEntries[i].Offset);
 
                             currentId++;
 

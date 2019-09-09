@@ -71,6 +71,7 @@
             "wow",
             "wowt",
             "wow_beta",
+            "wow_classic",
             "wow_classic_beta"});
             this.wowProductComboBox.Location = new System.Drawing.Point(54, 58);
             this.wowProductComboBox.Name = "wowProductComboBox";
