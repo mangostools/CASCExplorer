@@ -168,9 +168,10 @@ namespace CASCExplorer
                         using (Stream skeStream = _casc.OpenFile(1237435))
                         using (Stream sknStream = _casc.OpenFile(1665033))
                         {
-                            WDC3Reader sk = new WDC3Reader(skStream);
-                            WDC3Reader ske = new WDC3Reader(skeStream);
-                            WDC3Reader skn = new WDC3Reader(sknStream);
+                            Func<ulong, bool> keyCheckFunc = x => KeyService.GetKey(x) != null;
+                            WDC3Reader sk = new WDC3Reader(skStream, keyCheckFunc);
+                            WDC3Reader ske = new WDC3Reader(skeStream, keyCheckFunc);
+                            WDC3Reader skn = new WDC3Reader(sknStream, keyCheckFunc);
 
                             Dictionary<int, List<int>> lookup = new Dictionary<int, List<int>>();
 
