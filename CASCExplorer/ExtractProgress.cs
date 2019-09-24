@@ -78,7 +78,7 @@ namespace CASCExplorer
 
                 try
                 {
-                    backgroundWorker1.ReportProgress((int)((float)++NumExtracted / (float)files.Count * 100));
+                    backgroundWorker1.ReportProgress((int)(++NumExtracted / (float)files.Count * 100.0f));
 
                     CASC.SaveFileTo(file.Hash, ExtractPath, file.FullName);
                 }
