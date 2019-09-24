@@ -57,7 +57,7 @@ namespace CASCLib
     {
         public abstract int GetId();
 
-        public void Read<T>(FieldCache[] fields, T entry, BitReader r, long recordsOffset, Dictionary<long, string> stringsTable, FieldMetaData[] fieldMeta, ColumnMetaData[] columnMeta, Value32[][] palletData, Dictionary<int, Value32>[] commonData, int id, int refId, bool isSparse = false) where T : ClientDBRow
+        public void Read<T>(FieldCache[] fields, T entry, BitReader r, int recordOffset, Dictionary<long, string> stringsTable, FieldMetaData[] fieldMeta, ColumnMetaData[] columnMeta, Value32[][] palletData, Dictionary<int, Value32>[] commonData, int id, int refId, bool isSparse = false) where T : ClientDBRow
         {
             int fieldIndex = 0;
 
@@ -108,7 +108,7 @@ namespace CASCLib
                             c1.Setter(entry, FieldReader.GetFieldValueArray<ulong>(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], c1.ArraySize));
                             break;
                         case FieldCache<T, string[]> c1:
-                            c1.Setter(entry, FieldReader.GetFieldValueStringsArray(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], stringsTable, isSparse, recordsOffset, c1.ArraySize));
+                            c1.Setter(entry, FieldReader.GetFieldValueStringsArray(r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex], stringsTable, isSparse, recordOffset, c1.ArraySize));
                             break;
                         default:
                             throw new Exception($"Unhandled DbcTable type: {f.Field.FieldType.FullName} in {f.Field.DeclaringType.FullName}.{f.Field.Name}");
@@ -146,7 +146,7 @@ namespace CASCLib
                             c1.Setter(entry, FieldReader.GetFieldValue<ulong>(GetId(), r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex]));
                             break;
                         case FieldCache<T, string> c1:
-                            c1.Setter(entry, isSparse ? r.ReadCString() : stringsTable[(recordsOffset + r.Offset + (r.Position >> 3)) + FieldReader.GetFieldValue<int>(GetId(), r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex])]);
+                            c1.Setter(entry, isSparse ? r.ReadCString() : stringsTable[(recordOffset + (r.Position >> 3)) + FieldReader.GetFieldValue<int>(GetId(), r, fieldMeta[fieldIndex], columnMeta[fieldIndex], palletData[fieldIndex], commonData[fieldIndex])]);
                             break;
                         default:
                             throw new Exception($"Unhandled DbcTable type: {f.Field.FieldType.FullName} in {f.Field.DeclaringType.FullName}.{f.Field.Name}");
@@ -461,7 +461,7 @@ namespace CASCLib
             throw new Exception(string.Format("Unexpected compression type {0}", columnMeta.CompressionType));
         }
 
-        public static string[] GetFieldValueStringsArray(BitReader r, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<int, Value32> commonData, Dictionary<long, string> stringsTable, bool isSparse, long recordsOffset, int arraySize)
+        public static string[] GetFieldValueStringsArray(BitReader r, FieldMetaData fieldMeta, ColumnMetaData columnMeta, Value32[] palletData, Dictionary<int, Value32> commonData, Dictionary<long, string> stringsTable, bool isSparse, int recordOffset, int arraySize)
         {
             string[] array = new string[arraySize];
 
@@ -472,7 +472,7 @@ namespace CASCLib
             }
             else
             {
-                var pos = recordsOffset + r.Offset + (r.Position >> 3);
+                var pos = recordOffset + (r.Position >> 3);
 
                 int[] strIdx = GetFieldValueArray<int>(r, fieldMeta, columnMeta, palletData, commonData, arraySize);
 
