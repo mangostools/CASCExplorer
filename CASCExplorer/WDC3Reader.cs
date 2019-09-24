@@ -190,11 +190,14 @@ namespace CASCLib
                 bool isSparse = (flags & 0x1) != 0;
                 bool hasIndex = (flags & 0x4) != 0;
 
+                long previousStringTableSize = 0;
+
                 for (int sectionIndex = 0; sectionIndex < sectionsCount; sectionIndex++)
                 {
                     if (sections[sectionIndex].TactKeyLookup != 0 && !hasTactKeyFunc(sections[sectionIndex].TactKeyLookup))
                     {
                         //Console.WriteLine("Detected db2 with encrypted section! HasKey {0}", CASC.HasKey(Sections[sectionIndex].TactKeyLookup));
+                        previousStringTableSize += sections[sectionIndex].StringTableSize;
                         continue;
                     }
 
@@ -220,7 +223,12 @@ namespace CASCLib
                         // string data
                         stringsTable = new Dictionary<long, string>();
 
-                        long stringDataOffset = (RecordsCount - sections[sectionIndex].NumRecords) * RecordSize;
+                        long stringDataOffset = 0;
+
+                        if (sectionIndex == 0)
+                            stringDataOffset = (RecordsCount - sections[sectionIndex].NumRecords) * RecordSize;
+                        else
+                            stringDataOffset = previousStringTableSize;
 
                         for (int i = 0; i < sections[sectionIndex].StringTableSize;)
                         {
@@ -316,6 +324,8 @@ namespace CASCLib
                         rec.SetId(copyRow.Key);
                         _Records.Add(copyRow.Key, rec);
                     }
+
+                    previousStringTableSize += sections[sectionIndex].StringTableSize;
                 }
             }
         }
