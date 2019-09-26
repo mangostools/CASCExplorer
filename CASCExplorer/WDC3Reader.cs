@@ -187,6 +187,8 @@ namespace CASCLib
                     }
                 }
 
+                Dictionary<long, string> stringsTable = new Dictionary<long, string>();
+
                 bool isSparse = (flags & 0x1) != 0;
                 bool hasIndex = (flags & 0x4) != 0;
 
@@ -205,7 +207,6 @@ namespace CASCLib
                     reader.BaseStream.Position = sections[sectionIndex].FileOffset;
 
                     byte[] recordsData;
-                    Dictionary<long, string> stringsTable = null;
                     SparseEntry[] sparseEntries = null;
 
                     if (isSparse)
@@ -222,8 +223,6 @@ namespace CASCLib
                         recordsData = reader.ReadBytes(sections[sectionIndex].NumRecords * RecordSize);
 
                         // string data
-                        stringsTable = new Dictionary<long, string>();
-
                         for (int i = 0; i < sections[sectionIndex].StringTableSize;)
                         {
                             long oldPos = reader.BaseStream.Position;
