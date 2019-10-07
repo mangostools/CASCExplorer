@@ -187,28 +187,33 @@ namespace CASCExplorer
 
                             foreach (var row in sk)
                             {
-                                string name = skn.GetRow(row.Key).GetField<string>(0).Replace(':', '_').Replace("\"", "");
+                                WDC3Row sknRow = skn.GetRow(row.Key);
 
-                                int type = row.Value.GetField<byte>(6);
-
-                                if (!lookup.TryGetValue(row.Key, out List<int> ske_entries))
-                                    continue;
-
-                                bool many = ske_entries.Count > 1;
-
-                                int i = 0;
-
-                                foreach (var fid in ske_entries)
+                                if (sknRow != null)
                                 {
-                                    if (!idToName.ContainsKey(fid))
-                                        idToName[fid] = new List<string>();
+                                    string name = sknRow.GetField<string>(0).Replace(':', '_').Replace("\"", "");
 
-                                    if (AddFileDataIdToSoundFiles)
-                                        idToName[fid].Add("unknown\\sound\\" + name + (many ? "_" + (i + 1).ToString("D2") : "") + "_" + fid + (type == 28 ? ".mp3" : ".ogg"));
-                                    else
-                                        idToName[fid].Add("unknown\\sound\\" + name + (many ? "_" + (i + 1).ToString("D2") : "") + (type == 28 ? ".mp3" : ".ogg"));
+                                    int type = row.Value.GetField<byte>(6);
 
-                                    i++;
+                                    if (!lookup.TryGetValue(row.Key, out List<int> ske_entries))
+                                        continue;
+
+                                    bool many = ske_entries.Count > 1;
+
+                                    int i = 0;
+
+                                    foreach (var fid in ske_entries)
+                                    {
+                                        if (!idToName.ContainsKey(fid))
+                                            idToName[fid] = new List<string>();
+
+                                        if (AddFileDataIdToSoundFiles)
+                                            idToName[fid].Add("unknown\\sound\\" + name + (many ? "_" + (i + 1).ToString("D2") : "") + "_" + fid + (type == 28 ? ".mp3" : ".ogg"));
+                                        else
+                                            idToName[fid].Add("unknown\\sound\\" + name + (many ? "_" + (i + 1).ToString("D2") : "") + (type == 28 ? ".mp3" : ".ogg"));
+
+                                        i++;
+                                    }
                                 }
                             }
                         }
