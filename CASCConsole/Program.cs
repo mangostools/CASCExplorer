@@ -185,11 +185,16 @@ namespace CASCConsole
             //}
 
             //ArmadilloCrypt crypt = new ArmadilloCrypt("sc1Dev");
+            //ArmadilloCrypt crypt = new ArmadilloCrypt(new byte[] { 0xe2, 0x56, 0x27, 0xf6, 0xe6, 0xc6, 0xd6, 0x02, 0xc2, 0x86, 0x37, 0x46, 0x02, 0x72, 0xc6, 0x24 });
+            //
+            //ulong x = BitConverter.ToUInt64(crypt.Key, 0);
+            //ulong y = BitConverter.ToUInt64(crypt.Key, 8);
 
             //var decr = crypt.DecryptFile(@"c:\Users\TOM_RUS\Downloads\e32f46c7245bfc154e43924555a5cf9f");
+            //var decr = crypt.DecryptFile(@"c:\Users\TOM_RUS\Downloads\e6185c20749d6b15dfd3aaf4110f3045");
 
-            //File.WriteAllBytes("test", decr);
-
+            //File.WriteAllBytes("e6185c20749d6b15dfd3aaf4110f3045_decrypted", decr);
+            //;
             //byte[] keyBytes = new byte[16];
 
             //ArmadilloCrypt crypt = new ArmadilloCrypt(keyBytes);
