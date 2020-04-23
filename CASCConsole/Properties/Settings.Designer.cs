@@ -12,7 +12,7 @@ namespace CASCConsole.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.1.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.6.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -37,18 +37,6 @@ namespace CASCConsole.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("d:\\Games\\World of Warcraft Public Test\\")]
-        public string StoragePath {
-            get {
-                return ((string)(this["StoragePath"]));
-            }
-            set {
-                this["StoragePath"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool OnlineMode {
             get {
@@ -61,13 +49,13 @@ namespace CASCConsole.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("wowt")]
-        public string Product {
+        [global::System.Configuration.DefaultSettingValueAttribute("G:\\Games\\World of Warcraft\\")]
+        public string StoragePath {
             get {
-                return ((string)(this["Product"]));
+                return ((string)(this["StoragePath"]));
             }
             set {
-                this["Product"] = value;
+                this["StoragePath"] = value;
             }
         }
     }

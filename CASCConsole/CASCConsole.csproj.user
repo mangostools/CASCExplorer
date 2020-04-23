@@ -3,4 +3,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <StartArguments>listfile listfile.csv .\testout\ enUS false</StartArguments>
   </PropertyGroup>
+  <PropertyGroup>
+    <_LastSelectedProfileId>F:\Dev\WoW\tools\CASCExplorer\CASCConsole\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
+  </PropertyGroup>
 </Project>

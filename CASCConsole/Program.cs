@@ -231,10 +231,10 @@ namespace CASCConsole
             //    }
             //}
 
-            if (args.Length != 5)
+            if (args.Length != 6)
             {
                 Console.WriteLine("Invalid arguments count!");
-                Console.WriteLine("Usage: CASCConsole <mode> <pattern|listfile> <destination> <localeFlags> <overrideArchive>");
+                Console.WriteLine("Usage: CASCConsole <mode> <pattern|listfile> <destination> <localeFlags> <product> <overrideArchive>");
                 return;
             }
 
@@ -249,17 +249,18 @@ namespace CASCConsole
 
             //CASCConfig.LoadFlags |= LoadFlags.Install;
 
-            CASCConfig config = Settings.Default.OnlineMode
-                ? CASCConfig.LoadOnlineStorageConfig(Settings.Default.Product, "us")
-                : CASCConfig.LoadLocalStorageConfig(Settings.Default.StoragePath, Settings.Default.Product);
-
-            CASCHandler cascHandler = CASCHandler.OpenStorage(config, bgLoader);
-
             string mode = args[0];
             string pattern = args[1];
             string dest = args[2];
             LocaleFlags locale = (LocaleFlags)Enum.Parse(typeof(LocaleFlags), args[3]);
-            bool overrideArchive = bool.Parse(args[4]);
+            string product = args[4];
+            bool overrideArchive = bool.Parse(args[5]);
+
+            CASCConfig config = Settings.Default.OnlineMode
+                ? CASCConfig.LoadOnlineStorageConfig(product, "us")
+                : CASCConfig.LoadLocalStorageConfig(Settings.Default.StoragePath, product);
+
+            CASCHandler cascHandler = CASCHandler.OpenStorage(config, bgLoader);
 
             cascHandler.Root.LoadListFile(Path.Combine(Environment.CurrentDirectory, "listfile.csv"), bgLoader);
             CASCFolder root = cascHandler.Root.SetFlags(locale, overrideArchive);
@@ -272,6 +273,7 @@ namespace CASCConsole
             Console.WriteLine("    Pattern/Listfile: {0}", pattern);
             Console.WriteLine("    Destination: {0}", dest);
             Console.WriteLine("    LocaleFlags: {0}", locale);
+            Console.WriteLine("    Product: {0}", product);
             Console.WriteLine("    OverrideArchive: {0}", overrideArchive);
 
             if (mode == "pattern")
