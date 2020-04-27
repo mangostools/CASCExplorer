@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "CASCConsole": {
+      "commandName": "Project",
+      "commandLineArgs": "listfile test.csv ./binout enUS wow_beta false",
+      "workingDirectory": "f:\\Dev\\WoW\\tools\\CASCExplorer\\CASCConsole\\bin\\Debug\\"
+    }
+  }
+}

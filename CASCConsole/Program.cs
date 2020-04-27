@@ -256,6 +256,8 @@ namespace CASCConsole
             string product = args[4];
             bool overrideArchive = bool.Parse(args[5]);
 
+            CASCConfig.LoadFlags |= LoadFlags.Install;
+
             CASCConfig config = Settings.Default.OnlineMode
                 ? CASCConfig.LoadOnlineStorageConfig(product, "us")
                 : CASCConfig.LoadLocalStorageConfig(Settings.Default.StoragePath, product);
@@ -264,7 +266,7 @@ namespace CASCConsole
 
             cascHandler.Root.LoadListFile(Path.Combine(Environment.CurrentDirectory, "listfile.csv"), bgLoader);
             CASCFolder root = cascHandler.Root.SetFlags(locale, overrideArchive);
-            //cascHandler.Root.MergeInstall(cascHandler.Install);
+            cascHandler.Root.MergeInstall(cascHandler.Install);
 
             Console.WriteLine("Loaded.");
 
