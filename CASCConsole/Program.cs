@@ -238,6 +238,10 @@ namespace CASCConsole
                 return;
             }
 
+            DateTime startTime = DateTime.Now;
+
+            Console.WriteLine($"Started at {startTime}");
+
             Console.WriteLine("Settings:");
             Console.WriteLine("    WowPath: {0}", Settings.Default.StoragePath);
             Console.WriteLine("    OnlineMode: {0}", Settings.Default.OnlineMode);
@@ -309,6 +313,9 @@ namespace CASCConsole
             }
 
             Console.WriteLine("Extracted.");
+
+            DateTime endTime = DateTime.Now;
+            Console.WriteLine($"Ended at {endTime} (took {endTime - startTime})");
         }
 
         private static void ExtractFile(CASCHandler cascHandler, ulong hash, string file, string dest)
