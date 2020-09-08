@@ -31,7 +31,7 @@
             this.button1 = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.wowProductComboBox = new System.Windows.Forms.ComboBox();
+            this.productComboBox = new System.Windows.Forms.ComboBox();
             this.storageFolderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
             this.button2 = new System.Windows.Forms.Button();
             this.SuspendLayout();
@@ -62,22 +62,15 @@
             this.label1.TabIndex = 2;
             this.label1.Text = "Path:";
             // 
-            // wowProductComboBox
+            // productComboBox
             // 
-            this.wowProductComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.wowProductComboBox.Enabled = false;
-            this.wowProductComboBox.FormattingEnabled = true;
-            this.wowProductComboBox.Items.AddRange(new object[] {
-            "wow",
-            "wowt",
-            "wow_beta",
-            "wowe1",
-            "wow_classic",
-            "wow_classic_beta"});
-            this.wowProductComboBox.Location = new System.Drawing.Point(54, 58);
-            this.wowProductComboBox.Name = "wowProductComboBox";
-            this.wowProductComboBox.Size = new System.Drawing.Size(121, 21);
-            this.wowProductComboBox.TabIndex = 3;
+            this.productComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.productComboBox.Enabled = false;
+            this.productComboBox.FormattingEnabled = true;
+            this.productComboBox.Location = new System.Drawing.Point(54, 58);
+            this.productComboBox.Name = "productComboBox";
+            this.productComboBox.Size = new System.Drawing.Size(121, 21);
+            this.productComboBox.TabIndex = 3;
             // 
             // button2
             // 
@@ -95,7 +88,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(438, 137);
             this.Controls.Add(this.button2);
-            this.Controls.Add(this.wowProductComboBox);
+            this.Controls.Add(this.productComboBox);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.button1);
@@ -112,7 +105,7 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.ComboBox wowProductComboBox;
+        private System.Windows.Forms.ComboBox productComboBox;
         private System.Windows.Forms.FolderBrowserDialog storageFolderBrowserDialog;
         private System.Windows.Forms.Button button2;
     }

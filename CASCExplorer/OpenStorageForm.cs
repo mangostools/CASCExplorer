@@ -1,5 +1,6 @@
 ﻿using CASCLib;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 
@@ -16,6 +17,12 @@ namespace CASCExplorer
         {
             InitializeComponent();
         }
+
+        private readonly Dictionary<CASCGameType, string[]> sharedInstallProducts = new Dictionary<CASCGameType, string[]>
+        {
+            [CASCGameType.WoW] = new string[] { "wow", "wowt", "wow_beta", "wowe1", "wow_classic", "wow_classic_beta", "wow_classic_ptr" },
+            [CASCGameType.WC3] = new string[] { "w3", "w3t" },
+        };
 
         private void Button1_Click(object sender, EventArgs e)
         {
@@ -40,20 +47,24 @@ namespace CASCExplorer
 
             textBox1.Text = path;
 
-            if (_gameType == CASCGameType.WoW)
-                wowProductComboBox.Enabled = true;
+            productComboBox.Items.Clear();
+            productComboBox.Enabled = sharedInstallProducts.TryGetValue(_gameType, out var products);
+            if (productComboBox.Enabled)
+            {
+                productComboBox.Items.AddRange(products);
+            }
         }
 
         private void Button2_Click(object sender, EventArgs e)
         {
-            if (_gameType == CASCGameType.WoW && wowProductComboBox.SelectedIndex == -1)
+            if (sharedInstallProducts.ContainsKey(_gameType) && productComboBox.SelectedIndex == -1)
             {
-                MessageBox.Show("Must select type of World of Warcraft product!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Must select type of game product!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
             StoragePath = textBox1.Text;
-            Product = (string)wowProductComboBox.SelectedItem;
+            Product = (string)productComboBox.SelectedItem;
 
             DialogResult = DialogResult.OK;
             Close();
